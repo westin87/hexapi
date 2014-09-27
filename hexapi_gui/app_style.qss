@@ -1,0 +1,37 @@
+QWidget {
+    color:#DCE9BE;
+    background-color:#2E2633;
+}
+
+QSlider::groove {
+    background:#555152;
+    border-radius: 4px;
+}
+
+QSlider::handle:vertical {
+    background:#99173C;
+    height:20px;
+    border-radius:4px;
+}
+
+QSlider::handle:horizontal {
+    background:#99173C;
+    width:20px;
+    border-radius:4px;
+}
+
+QLineEdit {
+    background-color:#99173C;
+}
+
+QComboBox {
+    background-color:#99173C;
+}
+
+QScrollArea {
+    background-color:#EFFFCD;
+}
+
+QPushButton {
+    background-color:#555152;
+}

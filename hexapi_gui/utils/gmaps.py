@@ -1,0 +1,41 @@
+#/usr/bin/env python3
+import urllib.request
+import math
+from PyQt5 import QtGui
+
+DEF_MAPS_SIZE = 640
+
+
+def get_map(center, zoom, size=(640, 640), scale=1, markers=None, path=None):
+    base_url = "http://maps.google.com/maps/api/staticmap?key="\
+               "AIzaSyCS1z_324W8CSzNP6nFXHTK2x40PIW5bM8&center={}&zoom={}"\
+               "&size={}&scale={}"
+    center_string = "{},{}".format(center[0], center[1])
+    zoom_string = "{}".format(zoom)
+    size_string = "{}x{}".format(size[0], size[1])
+    scale_string = "{}".format(scale)
+    url = base_url.format(center_string, zoom_string, size_string,
+                          scale_string)
+    if markers:
+        marker_base = "&markers="
+        for marker in markers:
+            marker_string = "{},{}".format(marker[0], marker[1])
+            marker_base += marker_string + "|"
+        url += marker_base[:-1]
+    if path:
+        path_base = "&path="
+        for point in path:
+            path_string = "{},{}".format(point[0], point[1])
+            path_base += path_string + "|"
+        url += path_base[:-1]
+    urllib.request.urlretrieve(url, "tmp_data.bin")
+    return QtGui.QPixmap("tmp_data.bin")
+
+
+def pix_to_deg_lat(pix, zoom, current_lat):
+    return -math.cos(math.radians(current_lat)) *\
+        pix_to_deg_long(pix, zoom)
+
+
+def pix_to_deg_long(pix, zoom):
+    return pix/(256*math.pow(2, zoom)/360)
