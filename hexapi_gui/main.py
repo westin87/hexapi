@@ -30,7 +30,7 @@ class HexapiGUI(QWidget):
         self.__pitch = 0
         self.__yaw = 0
         self.__roll = 0
-        self.__mode_switch = 20
+        self.__mode_switch = "ATTI"
 
         map_area = QScrollArea()
         map_area.setMinimumSize(480, 480)
@@ -69,6 +69,14 @@ class HexapiGUI(QWidget):
         if event.key() in self.__pressed_keys:
             self.__pressed_keys.remove(event.key())
 
+    def __reset_controlls(self):
+        self.__altitude = -100
+        self.__pitch = 0
+        self.__yaw = 0
+        self.__roll = 0
+        self.__mode_switch = "ATTI"
+        self.__update_controll_values()
+
     def __send_ping(self):
         if self.__connected:
             self.__nh.send_command("PING")
@@ -89,18 +97,19 @@ class HexapiGUI(QWidget):
         self.__nh.send_command("SET_YAW", self.__yaw)
         self.__nh.send_command("SET_ALTITUDE", self.__altitude)
         self.__nh.send_command("SET_MODE", self.__mode_switch)
-
-    def __abort(self):
-        self.__nh.send_command("STOP_PROG")
+        self.__update_controll_values()
 
     def __start_motors(self):
-        self.__nh.send_command("SET_PITCH", -100)
-        self.__nh.send_command("SET_ROLL", -100)
-        self.__nh.send_command("SET_YAW", -100)
-        time.sleep(1)
-        self.__nh.send_command("SET_PITCH", 0)
-        self.__nh.send_command("SET_ROLL", 0)
-        self.__nh.send_command("SET_YAW", 0)
+        self.__nh.send_command("START_MOTORS")
+        self.__reset_controlls()
+
+    def __land(self):
+        self.__nh.send_command("LAND")
+        self.__reset_controlls()
+
+    def __kill(self):
+        self.__nh.send_command("KILL")
+        self.__reset_controlls()
 
     def __op_sign(self, x):
         if x > 0:
@@ -169,13 +178,13 @@ class HexapiGUI(QWidget):
                     self.__altitude -= 1
                     self.__nh.send_command("SET_ALTITUDE", self.__altitude)
             if key == QtCore.Qt.Key_1:
-                self.__mode_switch = -15
+                self.__mode_switch = "FS"
                 self.__nh.send_command("SET_MODE", self.__mode_switch)
             if key == QtCore.Qt.Key_2:
-                self.__mode_switch = -50
+                self.__mode_switch = "MAN"
                 self.__nh.send_command("SET_MODE", self.__mode_switch)
             if key == QtCore.Qt.Key_3:
-                self.__mode_switch = 20
+                self.__mode_switch = "ATTI"
                 self.__nh.send_command("SET_MODE", self.__mode_switch)
             if key == QtCore.Qt.Key_C:
                 self.__pitch = 0
@@ -184,15 +193,12 @@ class HexapiGUI(QWidget):
                 self.__nh.send_command("SET_PITCH", self.__pitch)
                 self.__nh.send_command("SET_ROLL", self.__roll)
                 self.__nh.send_command("SET_YAW", self.__yaw)
+            if key == QtCore.Qt.Key_L:
+                self.__land()
+            if key == QtCore.Qt.Key_O:
+                self.__start_motors()
             if key == QtCore.Qt.Key_K:
-                self.__pitch = 0
-                self.__roll = 0
-                self.__yaw = 0
-                self.__altitude = -100
-                self.__nh.send_command("SET_PITCH", self.__pitch)
-                self.__nh.send_command("SET_ROLL", self.__roll)
-                self.__nh.send_command("SET_YAW", self.__yaw)
-                self.__nh.send_command("SET_ALTITUDE", self.__altitude)
+                self.__kill()
 
             self.__update_controll_values()
 
@@ -208,13 +214,17 @@ class HexapiGUI(QWidget):
         connect_button = QPushButton("Set host")
         connect_button.clicked.connect(self.__connect)
 
-        abort_button = QPushButton("Abort")
-        abort_button.clicked.connect(self.__abort)
+        land_button = QPushButton("Land")
+        land_button.clicked.connect(self.__land)
+
+        kill_button = QPushButton("Kill!")
+        kill_button.clicked.connect(self.__kill)
 
         layout.addWidget(host_text, 0, 0, 1, 1)
         layout.addWidget(self.__host_edit, 0, 2, 1, 3)
         layout.addWidget(connect_button, 0, 5, 1, 1)
-        layout.addWidget(abort_button, 2, 0, 1, 6)
+        layout.addWidget(land_button, 2, 0, 1, 6)
+        layout.addWidget(kill_button, 3, 0, 1, 6)
 
     def __add_mode_selection(self, layout):
         mode_text = QLabel()
@@ -243,7 +253,7 @@ class HexapiGUI(QWidget):
         gps_widget.setLayout(gps_layout)
         tabs.addTab(rc_widget, "RC")
         tabs.addTab(gps_widget, "GPS")
-        layout.addWidget(tabs, 3, 0, 1, 6)
+        layout.addWidget(tabs, 4, 0, 1, 6)
 
     def __add_rc_controll_display(self, layout):
 
@@ -319,8 +329,7 @@ class HexapiGUI(QWidget):
         self.__roll_value_text.setText(str(self.__roll))
         self.__yaw_value_text.setText(str(self.__yaw))
         self.__altitude_value_text.setText(str(self.__altitude+100))
-        mode_trans = {-50: "Manual", -15: "Failsafe", 20: "Atti"}
-        self.__mode_value_text.setText(mode_trans[self.__mode_switch])
+        self.__mode_value_text.setText(self.__mode_switch)
 
 
 if __name__ == "__main__":

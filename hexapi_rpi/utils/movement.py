@@ -2,7 +2,7 @@ from __future__ import division
 import platform
 
 # Check if on hexcopter or local, if local import stub for testing.
-rpi_hosts = ['hexapi', 'cyclone', 'raspberrypi']
+rpi_hosts = ['hexapi', 'raspberrypi']
 
 if platform.node() in rpi_hosts:
     print "MV: Running on RPI"

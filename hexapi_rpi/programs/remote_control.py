@@ -1,3 +1,5 @@
+import time
+
 import programs.program as program
 
 
@@ -22,8 +24,18 @@ class RcProgram(program.Program):
     def set_altitude(self, level):
         self._mov.set_altitude(int(level))
 
-    def set_mode(self, level):
-        self._mov.set_mode(int(level))
+    def set_mode(self, mode):
+        mode_trans = {"MAN": -50, "FS": -15, "ATTI": 20}
+        self._mov.set_mode(mode_trans[mode])
+
+    def start_motors(self):
+        self._mov.set_pitch(-100)
+        self._mov.set_roll(-100)
+        self._mov.set_yaw(-100)
+        time.sleep(1)
+        self._mov.set_pitch(0)
+        self._mov.set_roll(0)
+        self._mov.set_yaw(0)
 
     def register_callbacks(self, nh):
         nh.register_callback(self.set_pitch, "SET_PITCH")
@@ -31,3 +43,4 @@ class RcProgram(program.Program):
         nh.register_callback(self.set_yaw, "SET_YAW")
         nh.register_callback(self.set_altitude, "SET_ALTITUDE")
         nh.register_callback(self.set_mode, "SET_MODE")
+        nh.register_callback(self.start_motors, "START_MOTORS")

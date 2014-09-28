@@ -40,7 +40,7 @@ class PingChecker(threading.Thread):
 
     def run(self):
         while not self.__stop:
-            if abs(self.__last_ping_time[0] - time.time()) > 5:
+            if abs(self.__last_ping_time[0] - time.time()) > 4:
                 print "NH: Network connection lost"
                 self.__stop = True
                 self.__abort_callback()
@@ -72,7 +72,7 @@ class NetworkHandlerThread(threading.Thread):
                                           self.__command_abort)
 
     def __command_abort(self):
-        self.__callback_list['STOP_PROG']()
+        self.__callback_list['LAND']()
 
     def run(self):
         print "NH: Thread started"
