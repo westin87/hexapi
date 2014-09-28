@@ -14,6 +14,7 @@ class Main:
         init_time = time.strftime("%y-%m-%d %H:%M:%S")
         print "==== Initiating hexapi " + init_time + " ===="
         self.__abort = False
+        self.__nice_abort = True
         self.__nh = network_handler.NetworkHandler(4092)
         self.__current_program = remote_control.RcProgram()
         self.__register_callbacks()
@@ -29,15 +30,20 @@ class Main:
     def abort_flight(self):
         print "MA: Abortign"
         m = movement.Movement(50)
+        self.__nh.stop()
         m.set_yaw(0)
         m.set_pitch(0)
         m.set_roll(0)
-        current_altitude = m.altitude_level
-        while current_altitude > -100:
-            time.sleep(0.5)
-            current_altitude -= 1
-            m.set_altitude(current_altitude)
-        self.__nh.stop()
+        if self.__nice_abort:
+            print "MA: Slow descent"
+            current_altitude = m.altitude_level
+            while current_altitude > -100:
+                time.sleep(0.5)
+                current_altitude -= 1
+                m.set_altitude(current_altitude)
+        else:
+            print "MA: Immediate engine turn off"
+            m.set_altitude(-100)
 
         stop_time = time.strftime("%y-%m-%d %H:%M:%S")
         print "==== Exiting " + stop_time + " ====\n"
@@ -56,12 +62,17 @@ class Main:
         self.__abort = True
         self.__current_program.kill()
 
+    def kill(self, *args):
+        self.__nice_abort = False
+        self.stop()
+
     def __register_callbacks(self):
         print "MA: Registring callbacks"
         # Add all callbacks to the network handler.
         self.__nh.register_callback(self.set_program_rc, "START_PROG_RC")
         self.__nh.register_callback(self.set_program_gps, "START_PROG_GPS")
-        self.__nh.register_callback(self.stop, "STOP_PROG")
+        self.__nh.register_callback(self.stop, "LAND")
+        self.__nh.register_callback(self.kill, "KILL")
         self.__current_program.register_callbacks(self.__nh)
 
 
