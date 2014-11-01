@@ -38,7 +38,7 @@ class Main:
             print "MA: Slow descent"
             current_altitude = m.altitude_level
             while current_altitude > -100:
-                time.sleep(0.5)
+                time.sleep(0.3)
                 current_altitude -= 1
                 m.set_altitude(current_altitude)
         else:

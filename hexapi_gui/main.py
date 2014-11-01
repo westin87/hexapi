@@ -274,6 +274,23 @@ class HexapiGUI(QWidget):
         mode_static_text = self.__create_text("Mode:", QtCore.Qt.AlignLeft)
         self.__mode_value_text = self.__create_text("0", QtCore.Qt.AlignRight)
 
+        KEY_MAP = "W: +Pitch\n" \
+            "S: -Pitch\n"\
+            "A: +Roll\n"\
+            "D: -Roll\n"\
+            "Q: +Yaw\n"\
+            "E: -Yaw\n"\
+            "R: +Altitude\n"\
+            "F: -Altitude\n"\
+            "C: Clear values\n"\
+            "L: Land\n"\
+            "K: Kill motors\n"\
+            "1: Flight mode FAIL_SAFE\n"\
+            "2: Flight mode MANUAL\n"\
+            "3: Flight mode KEEP ALTITUDE\n"
+
+        keys_text = self.__create_text(KEY_MAP, QtCore.Qt.AlignLeft)
+
         self.__update_controll_values()
 
         self.__auto_return_button = QPushButton("Auto return")
@@ -312,6 +329,8 @@ class HexapiGUI(QWidget):
 
         layout.addWidget(self.__start_button, 1, 3, 1, 2,
                          QtCore.Qt.AlignVCenter)
+        layout.addWidget(keys_text, 5, 0, 4, 2,
+                         QtCore.Qt.AlignVCenter)
 
         for i in range(5):
             layout.setRowMinimumHeight(i, 26)
@@ -322,7 +341,7 @@ class HexapiGUI(QWidget):
         text_label = QLabel()
         text_label.setAlignment(alignment)
         text_label.setText(text)
-        return text_label
+        return text_label   
 
     def __update_controll_values(self):
         self.__pitch_value_text.setText(str(self.__pitch))
