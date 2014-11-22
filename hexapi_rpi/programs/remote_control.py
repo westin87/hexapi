@@ -8,7 +8,8 @@ class RcProgram(program.Program):
         super(RcProgram, self).__init__()
 
     def run(self):
-        print "RC: Sarting RC program"
+        print "RC: Starting RC program"
+        self._stop_program = False
         while not self._stop_program:
             pass
 

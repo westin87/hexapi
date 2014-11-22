@@ -7,5 +7,5 @@ class Program(object):
         self._mov = movement.Movement(50)
         self._stop_program = False
 
-    def kill(self):
+    def stop(self):
         self._stop_program = True

@@ -13,10 +13,6 @@ from network.network_handler import NetworkHandler
 from widgets.map_label import MapLabel
 
 
-def test_func():
-    print("test_func called.")
-
-
 class HexapiGUI(QWidget):
     def __init__(self):
         super(HexapiGUI, self).__init__()
@@ -226,6 +222,17 @@ class HexapiGUI(QWidget):
         layout.addWidget(land_button, 2, 0, 1, 6)
         layout.addWidget(kill_button, 3, 0, 1, 6)
 
+    def __switch_controll_mode(self):
+        command = ""
+        if self.__mode_selection.currentText() == "RC":
+            command = "START_PROG_RC"
+        elif self.__mode_selection.currentText() == "GPS":
+            command = "START_PROG_GPS"
+        else:
+            command = "START_PROG_RC"
+
+        self.__nh.send_command(command)
+
     def __add_mode_selection(self, layout):
         mode_text = QLabel()
         mode_text.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignCenter)
@@ -234,7 +241,7 @@ class HexapiGUI(QWidget):
         self.__mode_selection.addItem("RC")
         self.__mode_selection.addItem("GPS")
         select_button = QPushButton("Select")
-        select_button.clicked.connect(test_func)
+        select_button.clicked.connect(self.__switch_controll_mode)
         layout.addWidget(mode_text, 1, 0, 1, 1)
         layout.addWidget(self.__mode_selection, 1, 3, 1, 2)
         layout.addWidget(select_button, 1, 5, 1, 1)
@@ -274,7 +281,7 @@ class HexapiGUI(QWidget):
         mode_static_text = self.__create_text("Mode:", QtCore.Qt.AlignLeft)
         self.__mode_value_text = self.__create_text("0", QtCore.Qt.AlignRight)
 
-        KEY_MAP = "W: +Pitch\n" \
+        KEY_MAP = "W: +Pitch\n"\
             "S: -Pitch\n"\
             "A: +Roll\n"\
             "D: -Roll\n"\
@@ -341,7 +348,7 @@ class HexapiGUI(QWidget):
         text_label = QLabel()
         text_label.setAlignment(alignment)
         text_label.setText(text)
-        return text_label   
+        return text_label
 
     def __update_controll_values(self):
         self.__pitch_value_text.setText(str(self.__pitch))
