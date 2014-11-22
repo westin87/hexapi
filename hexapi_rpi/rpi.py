@@ -16,7 +16,9 @@ class Main:
         self.__abort = False
         self.__nice_abort = True
         self.__nh = network_handler.NetworkHandler(4092)
-        self.__current_program = remote_control.RcProgram()
+        self.__rc_program = remote_control.RcProgram()
+        self.__gps_program = gps_program.GpsProgram()
+        self.__current_program = self.__rc_program
         self.__register_callbacks()
         self.__nh.start()
 
@@ -49,18 +51,20 @@ class Main:
         print "==== Exiting " + stop_time + " ====\n"
 
     def set_program_rc(self):
+        print "MA: Switching to rc mode"
         old_program = self.__current_program
-        self.__current_program = remote_control.RcProgram()
-        old_program.kill()
+        self.__current_program = self.__rc_program
+        old_program.stop()
 
     def set_program_gps(self):
+        print "MA: Switching to gps mode"
         old_program = self.__current_program
-        self.__current_program = gps_program.GpsProgram()
-        old_program.kill()
+        self.__current_program = self.__gps_program
+        old_program.stop()
 
     def stop(self, *args):
         self.__abort = True
-        self.__current_program.kill()
+        self.__current_program.stop()
 
     def kill(self, *args):
         self.__nice_abort = False
@@ -73,7 +77,8 @@ class Main:
         self.__nh.register_callback(self.set_program_gps, "START_PROG_GPS")
         self.__nh.register_callback(self.stop, "LAND")
         self.__nh.register_callback(self.kill, "KILL")
-        self.__current_program.register_callbacks(self.__nh)
+        self.__rc_program.register_callbacks(self.__nh)
+        self.__gps_program.register_callbacks(self.__nh)
 
 
 if __name__ == '__main__':
