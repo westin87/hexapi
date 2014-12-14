@@ -9,17 +9,14 @@ if platform.node() in rpi_hosts:
     import utils.Adafruit_PWM_Servo_Driver as ada
 else:
     print "MV: Running on local"
-    import utils.stubs as stubs
+    import utils.stubs as ada
 
 
 class Movement():
     class __Movement():
         def __init__(self, freq):
             # Initialise the PWM device using the default address
-            if platform.node() in rpi_hosts:
-                self.__pwm = ada.PWM(0x40, debug=True)
-            else:
-                self.__pwm = stubs.PWM(0x40, debug=True)
+            self.__pwm = ada.PWM(0x40, debug=True)
 
             self.__pwm.setPWMFreq(freq)
             self.__tick_length = (1/freq)/4096  # Length in s of a tick

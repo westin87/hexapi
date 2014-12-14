@@ -13,7 +13,7 @@ def deploy():
 
 
 def start_gps():
-    sudo("gpsd /dev/ttyAMA0")
+    sudo("nohup gpsd /dev/ttyAMA0")
 
 
 def start_hexapi():
