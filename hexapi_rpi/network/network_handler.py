@@ -4,27 +4,42 @@ import threading
 import time
 
 
-class NetworkHandler:
+class SharedData():
+    last_ping_time = 0
+    ip = ""
+
+
+class NetworkHandler():
     """ Manages the network connection with the client. Other
     software registers callback functions together with a network command.
     The callback functions are then invoked when a matching network
     command is received from the client. The callback function can take
     any number of arguments. """
 
-    def __init__(self, port):
+    def __init__(self, in_port=4092, out_port=4094):
         print "NH: Network handler created"
-        self.port = port
-        self.callback_list = {}
+        self.__in_port = in_port
+        self.__out_port = out_port
+        self.__callback_list = dict()
+        self.__shared_data = SharedData()
+        self.__network_socket = socket.socket(socket.AF_INET,
+                                              socket.SOCK_DGRAM)
 
-    def register_callback(self, fPtr, command):
+    def register_callback(self, function, command):
         """ Register callbacks, takes a function and a network command."""
-        self.callback_list[command] = fPtr
+        self.__callback_list[command] = function
+
+    def send_data(self, data):
+        self.__network_socket.sendto(str(data).encode(),
+                                     (self.__shared_data.ip,
+                                      self.__out_port))
 
     def start(self):
         """ Starts the NetworkHandler, all callbacks needs to be registerd
         before this mathod is called. """
         print "NH: Starting thread"
-        self.thread = NetworkHandlerThread(self.port, self.callback_list)
+        self.thread = NetworkHandlerThread(self.__port, self.__shared_data,
+                                           self.callback_list)
         self.thread.start()
 
     def stop(self):
@@ -32,15 +47,15 @@ class NetworkHandler:
 
 
 class PingChecker(threading.Thread):
-    def __init__(self, last_ping_time, abort_callback):
+    def __init__(self, shared_data, abort_callback):
         threading.Thread.__init__(self)
-        self.__last_ping_time = last_ping_time
+        self.__shared_data = shared_data
         self.__abort_callback = abort_callback
         self.__stop = False
 
     def run(self):
         while not self.__stop:
-            if abs(self.__last_ping_time[0] - time.time()) > 4:
+            if abs(self.shared_data.last_ping_time - time.time()) > 4:
                 print "NH: Network connection lost"
                 self.__stop = True
                 self.__abort_callback()
@@ -54,7 +69,7 @@ class NetworkHandlerThread(threading.Thread):
     """ Runs the network communication in a thread so that all other execution
     remains unaffected. """
 
-    def __init__(self, port, callback_list):
+    def __init__(self, port, shared_data,  callback_list):
         print "NH: Thread created"
         threading.Thread.__init__(self)
         self.__stop = False
@@ -67,8 +82,8 @@ class NetworkHandlerThread(threading.Thread):
         self.__client = None
         self.__address = None
         self.__first_ping = True
-        self.__time_of_last_ping = [0]
-        self.__ping_checker = PingChecker(self.__time_of_last_ping,
+        self.__shared_data = shared_data
+        self.__ping_checker = PingChecker(self.__shared_data,
                                           self.__command_abort)
 
     def __command_abort(self):
@@ -78,7 +93,8 @@ class NetworkHandlerThread(threading.Thread):
         print "NH: Thread started"
         while not self.__stop:
             try:
-                data, _ = self.__network_socket.recvfrom(1024)
+                data, self.__shared_data.ip =\
+                    self.__network_socket.recvfrom(1024)
             except Exception:
                 continue
 

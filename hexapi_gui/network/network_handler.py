@@ -19,6 +19,5 @@ class NetworkHandler:
             for arg in args:
                 data += (str(arg) + " ")
 
-            self.__network_socket.sendto(data.encode(encoding='utf_8',
-                                                     errors='strict'),
+            self.__network_socket.sendto(data.encode(),
                                          (self.__host, self.__port))
