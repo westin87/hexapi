@@ -1,4 +1,5 @@
 import random
+import time
 
 
 class PWM():
@@ -40,8 +41,20 @@ class gps():
         self.fix = Fix()
 
     def next(self):
+        self.fix.altitude = random.random()
+        self.fix.climb = random.random()
+        self.fix.epc = random.random()
+        self.fix.epd = random.random()
+        self.fix.eps = random.random()
+        self.fix.ept = random.random()
+        self.fix.epv = random.random()
+        self.fix.epx = random.random()
+        self.fix.epy = random.random()
         self.fix.latitude = random.random()
         self.fix.longitude = random.random()
-        self.fix.altitude = random.random()
+        self.fix.mode = random.random()
         self.fix.speed = random.random()
-        self.fix.altitude = random.random()
+        self.fix.time = random.random()
+        self.fix.track = random.random()
+
+        time.sleep(0.2)

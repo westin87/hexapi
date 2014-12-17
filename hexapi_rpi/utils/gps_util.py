@@ -1,22 +1,35 @@
 from __future__ import division
 import platform
 import threading
+import time
+import os
+from copy import copy
+
 
 # Check if on hexcopter or local, if local import stub for testing.
 rpi_hosts = ['hexapi', 'raspberrypi']
 
 if platform.node() in rpi_hosts:
     print "GPS: Running on RPI"
-    import gps
+    from gps import gps
 else:
     print "GPS: Running on local"
     from utils.stubs import gps
 
+GPS_ATTRIBUTES = ['altitude', 'climb', 'epc', 'epd', 'eps', 'ept', 'epv',
+                  'epx', 'epy', 'latitude', 'longitude', 'mode', 'speed',
+                  'time', 'track']
+
 
 class GPSData():
-    position = (0, 0, 0)
-    accuracy = 0
-    speed = 0
+    def __init__(self):
+        self.data = dict()
+        for atter in GPS_ATTRIBUTES:
+            self.data[atter] = 0.0
+
+    def __str__(self):
+        return ", ".join(["{}: {:.16f}".format(key, value)
+                          for key, value in self.data.items()])
 
 
 class GPSPoller(threading.Thread):
@@ -25,15 +38,25 @@ class GPSPoller(threading.Thread):
         self.__gps_data = gps_data
         self.__stop = False
         self.__gpsd = gps(mode=gps.WATCH_ENABLE)
+        self.__datafile = os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), "gps_data.log")
+        print(__file__)
+        with open(self.__datafile, mode='a+') as f:
+            f.write("GPS collection started: {}\n"
+                    .format(time.strftime("%y/%m/%d %H:%M:%S")))
 
     def run(self):
         while not self.__stop:
             self.__gpsd.next()
-            self.__gps_data.position = (self.__gpsd.fix.latitude,
-                                        self.__gpsd.fix.longitude,
-                                        self.__gpsd.fix.altitude)
-            self.__gps_data.speed = self.__gpsd.fix.speed
-            self.__gps_data.accuracy = 0
+
+            for atter in GPS_ATTRIBUTES:
+                self.__gps_data.data[atter] = getattr(self.__gpsd.fix, atter)
+
+            with open(self.__datafile, 'a+') as f:
+                f.write(str(self.__gps_data)+"\n")
+
+        with open(self.__datafile, 'a+') as f:
+            f.write("\n")
 
     def stop(self):
         self.__stop = True
@@ -47,14 +70,8 @@ class GPSUtil():
 
             self.__gps_poller.start()
 
-        def get_position(self):
-            return self.__gps_data.position
-
-        def get_accuracy(self):
-            return self.__gps_data.accuracy
-
-        def get_speed(self):
-            return self.__gps_data.speed
+        def get_gps_data(self):
+            return copy(self.__gps_data.data)
 
         def kill(self):
             self.__gps_poller.stop()

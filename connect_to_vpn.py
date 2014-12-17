@@ -9,7 +9,7 @@ import socket
 
 def is_connected():
     try:
-        urllib.request.urlopen("http://www.google.com", timeout=3)
+        urllib.request.urlopen("http://74.125.232.102/", timeout=3)
         return True
     except (urllib.request.URLError, socket.timeout):
         return False
