@@ -25,17 +25,7 @@ class PWM():
         self.stopTick = stopTick
 
 
-class Fix():
-    latitude = 0
-    longitude = 0
-    altitude = 0
-    speed = 0
-    altitude = 0
-
-
 class gps():
-
-    WATCH_ENABLE = 1
 
     def __init__(self, mode):
         self.fix = Fix()
@@ -58,3 +48,15 @@ class gps():
         self.fix.track = random.random()
 
         time.sleep(0.4)
+
+
+# GPS related
+WATCH_ENABLE = 1
+
+
+class Fix():
+    latitude = 0
+    longitude = 0
+    altitude = 0
+    speed = 0
+    altitude = 0

@@ -7,6 +7,7 @@ from network import network_handler
 from programs import remote_control
 from programs import gps_program
 from utils import movement
+from utils import gps_util
 
 
 class Main:
@@ -63,6 +64,7 @@ class Main:
         old_program.stop()
 
     def stop(self, *args):
+        gps = gps_util.GPSUtil()
         self.__abort = True
         self.__current_program.stop()
 

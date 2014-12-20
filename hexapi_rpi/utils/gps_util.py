@@ -11,10 +11,10 @@ rpi_hosts = ['hexapi', 'raspberrypi']
 
 if platform.node() in rpi_hosts:
     print "GPS: Running on RPI"
-    from gps import gps
+    import gps
 else:
     print "GPS: Running on local"
-    from utils.stubs import gps
+    import utils.stubs as gps
 
 GPS_ATTRIBUTES = ['altitude', 'climb', 'epc', 'epd', 'eps', 'ept', 'epv',
                   'epx', 'epy', 'latitude', 'longitude', 'mode', 'speed',
@@ -28,7 +28,7 @@ class GPSData():
             self.data[atter] = 0.0
 
     def __str__(self):
-        return ", ".join(["{}: {:.16f}".format(key, value)
+        return ", ".join(["{}: {}".format(key, value)
                           for key, value in self.data.items()])
 
 
@@ -37,10 +37,9 @@ class GPSPoller(threading.Thread):
         threading.Thread.__init__(self)
         self.__gps_data = gps_data
         self.__stop = False
-        self.__gpsd = gps(mode=gps.WATCH_ENABLE)
+        self.__gpsd = gps.gps(mode=gps.WATCH_ENABLE)
         self.__datafile = os.path.join(os.path.dirname(
             os.path.abspath(__file__)), "gps_data.log")
-        print(__file__)
         with open(self.__datafile, mode='a+') as f:
             f.write("GPS collection started: {}\n"
                     .format(time.strftime("%y/%m/%d %H:%M:%S")))
@@ -71,7 +70,7 @@ class GPSUtil():
             self.__gps_poller.start()
 
         def get_gps_data(self):
-            return copy(self.__gps_data.data)
+            return copy(self.__gps_data)
 
         def kill(self):
             self.__gps_poller.stop()

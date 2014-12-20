@@ -38,8 +38,8 @@ class NetworkHandler():
         """ Starts the NetworkHandler, all callbacks needs to be registerd
         before this mathod is called. """
         print "NH: Starting thread"
-        self.thread = NetworkHandlerThread(self.__port, self.__shared_data,
-                                           self.callback_list)
+        self.thread = NetworkHandlerThread(self.__in_port, self.__shared_data,
+                                           self.__callback_list)
         self.thread.start()
 
     def stop(self):
@@ -55,7 +55,7 @@ class PingChecker(threading.Thread):
 
     def run(self):
         while not self.__stop:
-            if abs(self.shared_data.last_ping_time - time.time()) > 4:
+            if abs(self.__shared_data.last_ping_time - time.time()) > 4:
                 print "NH: Network connection lost"
                 self.__stop = True
                 self.__abort_callback()
@@ -113,7 +113,7 @@ class NetworkHandlerThread(threading.Thread):
 
                 if command == "PING":
 
-                    self.__time_of_last_ping[0] = time.time()
+                    self.__shared_data.last_ping_time = time.time()
 
                     if self.__first_ping:
                         self.__ping_checker.start()

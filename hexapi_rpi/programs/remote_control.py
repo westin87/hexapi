@@ -1,17 +1,23 @@
 import time
 
-import programs.program as program
+from programs import program
+from utils import gps_util
 
 
 class RcProgram(program.Program):
     def __init__(self):
         super(RcProgram, self).__init__()
+        self.__gps = gps_util.GPSUtil()
 
     def run(self):
         print "RC: Starting RC program"
         self._stop_program = False
         while not self._stop_program:
-            pass
+            gps_data = self.__gps.get_gps_data()
+            #print str(gps_data)
+            time.sleep(0.2)
+
+        self.__gps.kill()
 
     def set_pitch(self, level):
         self._mov.set_pitch(int(level))
