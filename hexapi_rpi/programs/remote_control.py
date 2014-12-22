@@ -5,16 +5,17 @@ from utils import gps_util
 
 
 class RcProgram(program.Program):
-    def __init__(self):
+    def __init__(self, nh):
         super(RcProgram, self).__init__()
         self.__gps = gps_util.GPSUtil()
+        self.__nh = nh
 
     def run(self):
         print "RC: Starting RC program"
         self._stop_program = False
         while not self._stop_program:
             gps_data = self.__gps.get_gps_data()
-            #print str(gps_data)
+            self.__nh.send_command("GPS_DATA", gps_data)
             time.sleep(0.2)
 
         self.__gps.kill()
@@ -44,10 +45,10 @@ class RcProgram(program.Program):
         self._mov.set_roll(0)
         self._mov.set_yaw(0)
 
-    def register_callbacks(self, nh):
-        nh.register_callback(self.set_pitch, "SET_PITCH")
-        nh.register_callback(self.set_roll, "SET_ROLL")
-        nh.register_callback(self.set_yaw, "SET_YAW")
-        nh.register_callback(self.set_altitude, "SET_ALTITUDE")
-        nh.register_callback(self.set_mode, "SET_MODE")
-        nh.register_callback(self.start_motors, "START_MOTORS")
+    def register_callbacks(self):
+        self.__nh.register_callback(self.set_pitch, "SET_PITCH")
+        self.__nh.register_callback(self.set_roll, "SET_ROLL")
+        self.__nh.register_callback(self.set_yaw, "SET_YAW")
+        self.__nh.register_callback(self.set_altitude, "SET_ALTITUDE")
+        self.__nh.register_callback(self.set_mode, "SET_MODE")
+        self.__nh.register_callback(self.start_motors, "START_MOTORS")

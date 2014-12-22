@@ -6,7 +6,7 @@ import time
 
 class SharedData():
     last_ping_time = 0
-    ip = ""
+    client_ip = ""
 
 
 class NetworkHandler():
@@ -29,10 +29,13 @@ class NetworkHandler():
         """ Register callbacks, takes a function and a network command."""
         self.__callback_list[command] = function
 
-    def send_data(self, data):
-        self.__network_socket.sendto(str(data).encode(),
-                                     (self.__shared_data.ip,
-                                      self.__out_port))
+    def send_command(self, command, *args):
+        if self.__shared_data.client_ip:
+            data = command + "; "
+            data += "; ".join(map(str, args))
+            self.__network_socket.sendto(data.encode(),
+                                         (self.__shared_data.client_ip,
+                                          self.__out_port))
 
     def start(self):
         """ Starts the NetworkHandler, all callbacks needs to be registerd
@@ -79,24 +82,25 @@ class NetworkHandlerThread(threading.Thread):
         self.__callback_list = callback_list
         self.__network_socket.bind(('', self.__port))
         self.__network_socket.setblocking(0)
-        self.__client = None
-        self.__address = None
         self.__first_ping = True
         self.__shared_data = shared_data
         self.__ping_checker = PingChecker(self.__shared_data,
                                           self.__command_abort)
 
     def __command_abort(self):
-        self.__callback_list['LAND']()
+        do_nothing = lambda x: 0
+        self.__callback_list.get('LAND', do_nothing)()
 
     def run(self):
         print "NH: Thread started"
         while not self.__stop:
             try:
-                data, self.__shared_data.ip =\
+                data, sender =\
                     self.__network_socket.recvfrom(1024)
             except Exception:
                 continue
+
+            self.__shared_data.client_ip = sender[0]
 
             decoded_data = data.decode()
 
@@ -120,11 +124,11 @@ class NetworkHandlerThread(threading.Thread):
                         self.__first_ping = False
 
                 elif command in self.__callback_list:
-                    print "NH: Client sent command: " + command
+                    print "NH: Received command: " + command
                     self.__callback_list[command](*arguments)
 
                 else:
-                    print "NH: Client sent invalid command: " + command
+                    print "NH: Received invalid command: " + command
 
     def stop(self):
         self.__ping_checker.stop()

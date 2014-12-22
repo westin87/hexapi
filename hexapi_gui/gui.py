@@ -2,7 +2,6 @@
 
 import sys
 import logging
-import time
 
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton,\
     QGridLayout, QScrollArea, QLineEdit, QComboBox, QTabWidget,\
@@ -57,6 +56,11 @@ class HexapiGUI(QWidget):
         self.__auto_return = False
         self.__pressed_keys = []
         self.__nh = NetworkHandler()
+        self.__nh.start()
+
+    def closeEvent(self, evnt):
+        self.__nh.stop()
+        super(HexapiGUI, self).closeEvent(evnt)
 
     def keyPressEvent(self, event):
         self.__pressed_keys.append(event.key())
@@ -359,7 +363,7 @@ class HexapiGUI(QWidget):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(filename='hexapi_gui.log', level=logging.INFO)
+    logging.basicConfig(filename='hexapi_gui.log', level=logging.DEBUG)
     app = QApplication([])
     win = HexapiGUI()
     win.show()

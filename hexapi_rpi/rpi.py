@@ -2,6 +2,10 @@
 
 import time
 import signal
+import sys
+
+sys.dont_write_bytecode = True
+
 
 from network import network_handler
 from programs import remote_control
@@ -17,7 +21,7 @@ class Main:
         self.__abort = False
         self.__nice_abort = True
         self.__nh = network_handler.NetworkHandler(4092)
-        self.__rc_program = remote_control.RcProgram()
+        self.__rc_program = remote_control.RcProgram(self.__nh)
         self.__gps_program = gps_program.GpsProgram()
         self.__current_program = self.__rc_program
         self.__register_callbacks()
@@ -79,7 +83,7 @@ class Main:
         self.__nh.register_callback(self.set_program_gps, "START_PROG_GPS")
         self.__nh.register_callback(self.stop, "LAND")
         self.__nh.register_callback(self.kill, "KILL")
-        self.__rc_program.register_callbacks(self.__nh)
+        self.__rc_program.register_callbacks()
         self.__gps_program.register_callbacks(self.__nh)
 
 
