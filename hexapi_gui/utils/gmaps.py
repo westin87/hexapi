@@ -6,7 +6,7 @@ from PyQt5 import QtGui
 DEF_MAPS_SIZE = 640
 
 
-def get_map(center, zoom, size=(640, 640), scale=1, markers=None, path=None):
+def get_map(center, zoom, size=(DEF_MAPS_SIZE, DEF_MAPS_SIZE), scale=1, markers=None, path=None):
     base_url = "http://maps.google.com/maps/api/staticmap?key="\
                "AIzaSyCS1z_324W8CSzNP6nFXHTK2x40PIW5bM8&center={}&zoom={}"\
                "&size={}&scale={}"

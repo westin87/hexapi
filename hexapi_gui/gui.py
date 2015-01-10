@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+import re
 import logging
 
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton,\
@@ -10,6 +11,28 @@ from PyQt5 import QtCore
 
 from network.network_handler import NetworkHandler
 from widgets.map_label import MapLabel
+
+GPS_ATTRIBUTES = ['altitude', 'climb', 'epc', 'epd', 'eps', 'ept', 'epv',
+                  'epx', 'epy', 'latitude', 'longitude', 'mode', 'speed',
+                  'time', 'track']
+
+
+class GPSData():
+    def __init__(self, data_str=None):
+        self.data = dict()
+        
+        for atter in GPS_ATTRIBUTES:
+            self.data[atter] = 0.0
+
+        if data_str:
+            for atter in GPS_ATTRIBUTES:
+                match = re.search("{}: \d*\.\d*".format(atter), data_str)
+                if match:
+                    self.data[atter] = float(match.group().split(": ")[1])
+
+    def __str__(self):
+        return ", ".join(["{}: {}".format(key, value)
+                          for key, value in self.data.items()])
 
 
 class HexapiGUI(QWidget):
@@ -30,8 +53,8 @@ class HexapiGUI(QWidget):
         map_area = QScrollArea()
         map_area.setMinimumSize(480, 480)
         map_area.setMaximumSize(640, 640)
-        image_label = MapLabel(parent=None, center=(58.376801, 15.647814))
-        map_area.setWidget(image_label)
+        self.image_label = MapLabel(parent=None, center=(58.376801, 15.647814))
+        map_area.setWidget(self.image_label)
 
         main_layout = QHBoxLayout()
         controll_layout = QGridLayout()
@@ -56,6 +79,7 @@ class HexapiGUI(QWidget):
         self.__auto_return = False
         self.__pressed_keys = []
         self.__nh = NetworkHandler()
+        self.__nh.register_callback(self.__receive_gps_data, "GPS_DATA")
         self.__nh.start()
 
     def closeEvent(self, evnt):
@@ -68,6 +92,13 @@ class HexapiGUI(QWidget):
     def keyReleaseEvent(self, event):
         if event.key() in self.__pressed_keys:
             self.__pressed_keys.remove(event.key())
+
+    def __receive_gps_data(self, gps_data):
+        self.__gps_data = GPSData(data_str=gps_data)
+        self.image_label.add_point((self.__gps_data.data['latitude'],
+                                    self.__gps_data.data['longitude']))
+        print((self.__gps_data.data['latitude'],
+               self.__gps_data.data['longitude']))
 
     def __reset_controlls(self):
         self.__altitude = -100
@@ -210,7 +241,7 @@ class HexapiGUI(QWidget):
         self.__host_edit = QLineEdit()
         self.__host_edit.setMinimumWidth(100)
         self.__host_edit.setAlignment(QtCore.Qt.AlignRight)
-        self.__host_edit.setPlaceholderText("host")
+        self.__host_edit.setPlaceholderText("192.169.1.2")
         connect_button = QPushButton("Set host")
         connect_button.clicked.connect(self.__connect)
 

@@ -6,7 +6,6 @@ import sys
 
 sys.dont_write_bytecode = True
 
-
 from network import network_handler
 from programs import remote_control
 from programs import gps_program

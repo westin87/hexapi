@@ -16,7 +16,7 @@ class RcProgram(program.Program):
         while not self._stop_program:
             gps_data = self.__gps.get_gps_data()
             self.__nh.send_command("GPS_DATA", gps_data)
-            time.sleep(0.2)
+            time.sleep(2)
 
         self.__gps.kill()
 
