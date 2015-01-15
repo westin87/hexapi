@@ -66,7 +66,7 @@ class gps():
         self.fix.time = random.random()
         self.fix.track = random.random()
 
-        time.sleep(1)
+        time.sleep(0.4)
 
 
 # GPS related

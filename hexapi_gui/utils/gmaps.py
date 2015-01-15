@@ -1,14 +1,18 @@
-#/usr/bin/env python3
+# /usr/bin/env python3
 import urllib.request
+import socket
 import math
 from PyQt5 import QtGui
 
 DEF_MAPS_SIZE = 640
 
 
-def get_map(center, zoom, size=(DEF_MAPS_SIZE, DEF_MAPS_SIZE), scale=1, markers=None, path=None):
-    base_url = "http://maps.google.com/maps/api/staticmap?key="\
-               "AIzaSyCS1z_324W8CSzNP6nFXHTK2x40PIW5bM8&center={}&zoom={}"\
+def get_map(center, zoom, size=(DEF_MAPS_SIZE, DEF_MAPS_SIZE), scale=1,
+            markers=None, path=None):
+    socket.setdefaulttimeout(1)
+
+    base_url = "http://maps.google.com/maps/api/staticmap?key=" \
+               "AIzaSyCS1z_324W8CSzNP6nFXHTK2x40PIW5bM8&center={}&zoom={}" \
                "&size={}&scale={}"
     center_string = "{},{}".format(center[0], center[1])
     zoom_string = "{}".format(zoom)
@@ -28,14 +32,28 @@ def get_map(center, zoom, size=(DEF_MAPS_SIZE, DEF_MAPS_SIZE), scale=1, markers=
             path_string = "{},{}".format(point[0], point[1])
             path_base += path_string + "|"
         url += path_base[:-1]
-    urllib.request.urlretrieve(url, "tmp_data.bin")
+
+    try:
+        urllib.request.urlretrieve(url, "tmp_data.bin")
+    except:
+        return QtGui.QPixmap("error.bin")
+
     return QtGui.QPixmap("tmp_data.bin")
 
 
 def pix_to_deg_lat(pix, zoom, current_lat):
-    return -math.cos(math.radians(current_lat)) *\
-        pix_to_deg_long(pix, zoom)
+    return ((-math.cos(math.radians(current_lat)) * 360 * pix) /
+            (256 * math.pow(2, zoom)))
 
 
 def pix_to_deg_long(pix, zoom):
-    return pix/(256*math.pow(2, zoom)/360)
+    return (360 * pix) / (256 * math.pow(2, zoom))
+
+
+def deg_lat_to_pix(deg, zoom, current_lat):
+    return ((256 * math.pow(2, zoom) * deg) /
+            (-math.cos(math.radians(current_lat)) * 360))
+
+
+def deg_long_to_pix(deg, zoom):
+    return (256 * math.pow(2, zoom) * deg) / 360
