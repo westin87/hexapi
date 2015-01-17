@@ -1,4 +1,3 @@
-# /usr/bin/env python3
 import urllib.request
 import socket
 import math
