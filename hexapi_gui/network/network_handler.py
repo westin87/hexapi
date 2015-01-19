@@ -1,7 +1,7 @@
 import socket
 import threading
 import logging
-
+import datetime
 
 class NetworkHandler:
     def __init__(self, in_port=4094):
@@ -54,7 +54,7 @@ class NetworkHandlerThread(threading.Thread):
         self.__port = port
         self.__callback_list = callback_list
         self.__network_socket.bind(('', self.__port))
-        self.__network_socket.setblocking(0)
+        self.__network_socket.settimeout(0.2)
 
     def run(self):
         logging.info("NH: Thread started")

@@ -81,7 +81,7 @@ class NetworkHandlerThread(threading.Thread):
         self.__port = port
         self.__callback_list = callback_list
         self.__network_socket.bind(('', self.__port))
-        self.__network_socket.setblocking(0)
+        self.__network_socket.settimeout(0.2)
         self.__first_ping = True
         self.__shared_data = shared_data
         self.__ping_checker = PingChecker(self.__shared_data,
