@@ -16,7 +16,7 @@ class Movement():
     class __Movement():
         def __init__(self, freq):
             # Initialise the PWM device using the default address
-            self.__pwm = ada.PWM(0x40, debug=True)
+            self.__pwm = ada.PWM(0x40, debug=False)
 
             self.__pwm.setPWMFreq(freq)
             self.__tick_length = (1/freq)/4096  # Length in s of a tick

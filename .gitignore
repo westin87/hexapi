@@ -85,5 +85,13 @@ local.properties
 # TeXlipse plugin
 .texlipse
 
+
+# PyCharm settings
+.idea
+
+# Local stuff
 tmp_data.bin
 *.png
+*.pdf
+*.ovpn
+
