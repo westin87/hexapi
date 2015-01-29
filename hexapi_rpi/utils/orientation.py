@@ -47,8 +47,8 @@ TEMP_MSB = 0x05
 TEMP_LSB = 0x06
 
 
-class Navigation():
-    class __Navigation():
+class Orientation():
+    class __Orientation():
         def __init__(self):
             self.__i2c_bus = SMBus(1)
 
@@ -63,12 +63,13 @@ class Navigation():
             self.__i2c_bus.write_byte_data(LSM, CTRL_6, 0b00100000) # set +/- 4 gauss full scale
             self.__i2c_bus.write_byte_data(LSM, CTRL_7, 0x00) #get magnetometer out of low power mode
 
-        def __twos_comp_combine(msb, lsb):
-            twos_comp = 256*msb + lsb
-            if twos_comp >= 32768:
-                return twos_comp - 65536
-            else:
-                return twos_comp
+        def __twos_comp_combine(self, msb, lsb):
+            value = (256*msb) + lsb
+
+            if value & 0x8000:
+                value = ~value + 1
+
+            return value
 
         def get_acceleration(self):
             acceleration_x = self.__twos_comp_combine(self.__i2c_bus.read_byte_data(LSM, ACC_X_MSB),
@@ -91,8 +92,8 @@ class Navigation():
     __instance = None
 
     def __init__(self):
-        if not Navigation.__instance:
-            Navigation.__instance = Navigation.__Navigation()
+        if not Orientation.__instance:
+            Orientation.__instance = Orientation.__Orientation()
 
     def __getattr__(self, value):
         return getattr(self.__instance, value)

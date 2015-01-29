@@ -79,3 +79,15 @@ class Fix():
     altitude = 0
     speed = 0
     altitude = 0
+
+
+class SMBus():
+    def __init__(self, number):
+        pass
+
+    def read_byte_data(self, address, register):
+        return random.randrange(0, 256)
+
+    def write_byte_data(self, address, register, value):
+        print "SM: Writing byte {} to register {} on address {}".\
+            format(value, register, address)

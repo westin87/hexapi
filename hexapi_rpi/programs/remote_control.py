@@ -2,12 +2,14 @@ import time
 
 from programs import program
 from utils import gps_util
+from utils import orientation
 
 
 class RcProgram(program.Program):
     def __init__(self, nh):
         super(RcProgram, self).__init__()
         self.__gps = gps_util.GPSUtil()
+        self.__orientation = orientation.Orientation()
         self.__nh = nh
 
     def run(self):
@@ -16,6 +18,13 @@ class RcProgram(program.Program):
         while not self._stop_program:
             gps_data = self.__gps.get_gps_data()
             self.__nh.send_command("GPS_DATA", gps_data)
+
+            mag_data = self.__orientation.get_magnetic_field()
+            self.__nh.send_command("MAG_DATA", mag_data)
+
+            acc_data = self.__orientation.get_acceleration()
+            self.__nh.send_command("ACC_DATA", acc_data)
+
             time.sleep(2)
 
         self.__gps.kill()
@@ -40,10 +49,12 @@ class RcProgram(program.Program):
         self._mov.set_pitch(-100)
         self._mov.set_roll(-100)
         self._mov.set_yaw(-100)
+        self._mov.set_altitude(-100)
         time.sleep(1)
         self._mov.set_pitch(0)
         self._mov.set_roll(0)
         self._mov.set_yaw(0)
+        self._mov.set_altitude(-75)
 
     def register_callbacks(self):
         self.__nh.register_callback(self.set_pitch, "SET_PITCH")

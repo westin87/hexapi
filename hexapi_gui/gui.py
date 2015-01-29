@@ -59,6 +59,8 @@ class HexapiGUI(QWidget):
         self.__pressed_keys = []
         self.__nh = NetworkHandler()
         self.__nh.register_callback(self.__receive_gps_data, "GPS_DATA")
+        self.__nh.register_callback(self.__receive_acc_data, "ACC_DATA")
+        self.__nh.register_callback(self.__receive_mag_data, "MAG_DATA")
         self.__nh.start()
 
     def closeEvent(self, event):
@@ -72,13 +74,20 @@ class HexapiGUI(QWidget):
         if event.key() in self.__pressed_keys:
             self.__pressed_keys.remove(event.key())
 
-    def __receive_gps_data(self, gps_data):
-        self.__gps_data = GPSData(data_str=gps_data)
-        self.__latest_hexapi_point = (self.__gps_data.data['latitude'],
-                                      self.__gps_data.data['longitude'])
+    def __receive_gps_data(self, raw_gps_data):
+        gps_data = GPSData(data_str=raw_gps_data)
+        self.__latest_hexapi_point = (gps_data.data['latitude'],
+                                      gps_data.data['longitude'])
 
         self.__map_label.add_point(self.__latest_hexapi_point)
-        print(self.__latest_hexapi_point)
+
+    def __receive_mag_data(self, raw_mag_data):
+        mag_data = eval(raw_mag_data)
+        print(mag_data)
+
+    def __receive_acc_data(self, raw_acc_data):
+        acc_data = eval(raw_acc_data)
+        print(acc_data)
 
     def __reset_controls(self):
         self.__altitude = -100
@@ -113,6 +122,8 @@ class HexapiGUI(QWidget):
     def __start_motors(self):
         self.__nh.send_command("START_MOTORS")
         self.__reset_controls()
+        self.__altitude = -75
+        self.__update_control_values()
 
     def __land(self):
         self.__nh.send_command("LAND")

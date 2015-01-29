@@ -23,7 +23,7 @@ class NetworkHandler:
 
     def send_command(self, command, *args):
         if self.__host:
-            data = command + " "
+            data = command + "; "
             data += "; ".join(map(str, args))
 
             self.__network_socket.sendto(data.encode(),
@@ -70,7 +70,9 @@ class NetworkHandlerThread(threading.Thread):
             if decoded_data == '':
                 break
             else:
-                splitted_data = decoded_data.split("; ")
+                splitted_data = [e for e in
+                                 map(str.strip, decoded_data.split("; "))]
+
                 command = splitted_data[0]
 
                 if len(splitted_data) > 1:

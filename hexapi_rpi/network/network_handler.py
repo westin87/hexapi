@@ -107,7 +107,7 @@ class NetworkHandlerThread(threading.Thread):
             if decoded_data == '':
                 break
             else:
-                splitted_data = decoded_data.split()
+                splitted_data = map(unicode.strip, decoded_data.split("; "))
                 command = splitted_data[0]
 
                 if len(splitted_data) > 1:
