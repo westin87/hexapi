@@ -83,11 +83,15 @@ class HexapiGUI(QWidget):
 
     def __receive_mag_data(self, raw_mag_data):
         mag_data = eval(raw_mag_data)
-        print(mag_data)
+        with open("mag_data.txt", mode='a') as fo:
+            fo.write("{}\n".format(mag_data))
+        print("Mag: {}".format(mag_data))
 
     def __receive_acc_data(self, raw_acc_data):
         acc_data = eval(raw_acc_data)
-        print(acc_data)
+        with open("acc_data.txt", mode='a') as fo:
+            fo.write("{}\n".format(acc_data))
+        print("Acc: {}".format(acc_data))
 
     def __reset_controls(self):
         self.__altitude = -100
