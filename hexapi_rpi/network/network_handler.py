@@ -18,6 +18,7 @@ class NetworkHandler():
 
     def __init__(self, in_port=4092, out_port=4094):
         print "NH: Network handler created"
+        self.thread = None
         self.__in_port = in_port
         self.__out_port = out_port
         self.__callback_list = dict()
@@ -31,8 +32,10 @@ class NetworkHandler():
 
     def send_command(self, command, *args):
         if self.__shared_data.client_ip:
-            data = command + "; "
-            data += "; ".join(map(str, args))
+            data = command
+            if args:
+                data += "; " + "; ".join(map(str, args))
+
             self.__network_socket.sendto(data.encode(),
                                          (self.__shared_data.client_ip,
                                           self.__out_port))
@@ -124,7 +127,9 @@ class NetworkHandlerThread(threading.Thread):
                         self.__first_ping = False
 
                 elif command in self.__callback_list:
-                    print "NH: Received command: " + command
+                    print "NH: Received command: " + command +\
+                          " with arguments: " + ", ".join(arguments)
+
                     self.__callback_list[command](*arguments)
 
                 else:

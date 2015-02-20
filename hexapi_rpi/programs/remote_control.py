@@ -25,7 +25,10 @@ class RcProgram(program.Program):
             acc_data = self.__orientation.get_acceleration()
             self.__nh.send_command("ACC_DATA", acc_data)
 
-            time.sleep(2)
+            ang_data = self.__orientation.get_angular_rate()
+            self.__nh.send_command("ANG_DATA", ang_data)
+
+            time.sleep(1)
 
         self.__gps.kill()
 

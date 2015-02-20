@@ -3,10 +3,12 @@ import threading
 import logging
 import datetime
 
+
 class NetworkHandler:
     def __init__(self, in_port=4094):
         self.__network_socket = socket.socket(socket.AF_INET,
                                               socket.SOCK_DGRAM)
+        self.thread = None
         self.__host = ""
         self.__callback_list = dict()
         self.__in_port = in_port
@@ -23,8 +25,9 @@ class NetworkHandler:
 
     def send_command(self, command, *args):
         if self.__host:
-            data = command + "; "
-            data += "; ".join(map(str, args))
+            data = command
+            if args:
+                data += "; " + "; ".join(map(str, args))
 
             self.__network_socket.sendto(data.encode(),
                                          (self.__host, self.__out_port))

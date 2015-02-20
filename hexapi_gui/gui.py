@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton,\
     QGridLayout, QScrollArea, QLineEdit, QComboBox, QTabWidget,\
     QHBoxLayout
 from PyQt5 import QtCore
+import time
 
 from network.network_handler import NetworkHandler
 from widgets.map_label import MapLabel
@@ -61,6 +62,7 @@ class HexapiGUI(QWidget):
         self.__nh.register_callback(self.__receive_gps_data, "GPS_DATA")
         self.__nh.register_callback(self.__receive_acc_data, "ACC_DATA")
         self.__nh.register_callback(self.__receive_mag_data, "MAG_DATA")
+        self.__nh.register_callback(self.__receive_ang_data, "ANG_DATA")
         self.__nh.start()
 
     def closeEvent(self, event):
@@ -83,15 +85,24 @@ class HexapiGUI(QWidget):
 
     def __receive_mag_data(self, raw_mag_data):
         mag_data = eval(raw_mag_data)
-        with open("mag_data.txt", mode='a') as fo:
+        timestamp = time.strftime("%y%m%d%H%M%S")
+        with open("mag_data_{}.txt".format(timestamp), mode='a') as fo:
             fo.write("{}\n".format(mag_data))
         print("Mag: {}".format(mag_data))
 
     def __receive_acc_data(self, raw_acc_data):
         acc_data = eval(raw_acc_data)
-        with open("acc_data.txt", mode='a') as fo:
+        timestamp = time.strftime("%y%m%d%H%M%S")
+        with open("acc_data_{}.txt".format(timestamp), mode='a') as fo:
             fo.write("{}\n".format(acc_data))
         print("Acc: {}".format(acc_data))
+
+    def __receive_ang_data(self, raw_acc_data):
+        acc_data = eval(raw_acc_data)
+        timestamp = time.strftime("%y%m%d%H%M%S")
+        with open("ang_data_{}.txt".format(timestamp), mode='a') as fo:
+            fo.write("{}\n".format(acc_data))
+        print("Ang: {}".format(acc_data))
 
     def __reset_controls(self):
         self.__altitude = -100
