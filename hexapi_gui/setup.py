@@ -6,9 +6,10 @@ setup(
     packages=find_packages(),
     entry_points={
         "console_scripts": [
-            "mcp = amraatlas.mcp:main"]
+            "hexagui = hexagui.gui:main"]
     },
     package_data={
         'hexagui': ['resources/*'],
-    }, requires=['PyQt5']
+    },
+    requires=['PyQt5']
 )

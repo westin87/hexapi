@@ -6,11 +6,11 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from network import network_handler
-from programs import remote_control
-from programs import gps_program
-from utils import movement
-from utils import gps_util
+from hexarpi.network import network_handler
+from hexarpi.programs import remote_control
+from hexarpi.programs import gps_program
+from hexarpi.utils import movement
+from hexarpi.utils import gps_util
 
 
 class Main:

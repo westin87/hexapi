@@ -5,6 +5,7 @@ import time
 import os
 from copy import copy
 
+from hexacommon.common.gps_data import GPSData
 
 # Check if on hexcopter or local, if local import stub for testing.
 rpi_hosts = ['hexapi', 'raspberrypi']
@@ -19,17 +20,6 @@ else:
 GPS_ATTRIBUTES = ['altitude', 'climb', 'epc', 'epd', 'eps', 'ept', 'epv',
                   'epx', 'epy', 'latitude', 'longitude', 'mode', 'speed',
                   'time', 'track']
-
-
-class GPSData():
-    def __init__(self):
-        self.data = dict()
-        for atter in GPS_ATTRIBUTES:
-            self.data[atter] = 0.0
-
-    def __str__(self):
-        return ", ".join(["{}: {}".format(key, value)
-                          for key, value in self.data.items()])
 
 
 class GPSPoller(threading.Thread):

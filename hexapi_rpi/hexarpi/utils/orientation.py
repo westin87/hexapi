@@ -6,10 +6,10 @@ rpi_hosts = ['hexapi', 'raspberrypi']
 
 if platform.node() in rpi_hosts:
     print "MV: Running on RPI"
-    from smbus import SMBus
+    from hexarpi.smbus import SMBus
 else:
     print "MV: Running on local"
-    from utils.stubs import SMBus
+    from hexarpi.utils.stubs import SMBus
 
 
 # --- Constants from LSM303D datasheet ---
