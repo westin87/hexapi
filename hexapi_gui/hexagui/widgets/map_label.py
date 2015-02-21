@@ -2,7 +2,7 @@
 
 from PyQt5.QtWidgets import QLabel, QPushButton
 from PyQt5 import QtGui, QtCore
-from utils import gmaps
+from hexagui.utils import gmaps
 
 
 class MapLabel(QLabel):

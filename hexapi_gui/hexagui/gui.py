@@ -2,15 +2,16 @@
 
 import sys
 import logging
+import time
+import pkg_resources
 
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton,\
-    QGridLayout, QScrollArea, QLineEdit, QComboBox, QTabWidget,\
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, \
+    QGridLayout, QScrollArea, QLineEdit, QComboBox, QTabWidget, \
     QHBoxLayout
 from PyQt5 import QtCore
-import time
 
-from network.network_handler import NetworkHandler
-from widgets.map_label import MapLabel
+from hexagui.network.network_handler import NetworkHandler
+from hexagui.widgets.map_label import MapLabel
 from common.gps_data import GPSData
 
 
@@ -20,8 +21,11 @@ class HexapiGUI(QWidget):
         self.setWindowTitle("Hexacopter controller")
         self.setGeometry(0, 0, 1024, 640)
 
-        with open("app_style.qss", 'r') as style_file:
-            app.setStyleSheet(style_file.read())
+        style_file_path = pkg_resources.resource_filename(__name__,
+            'resources/app_style.qss')
+
+        with open(style_file_path, 'r') as style_file_object:
+            app.setStyleSheet(style_file_object.read())
 
         self.__altitude = -100
         self.__pitch = 0
@@ -33,7 +37,8 @@ class HexapiGUI(QWidget):
         map_area = QScrollArea()
         map_area.setMinimumSize(480, 480)
         map_area.setMaximumSize(640, 640)
-        self.__map_label = MapLabel(parent=None, center=self.__latest_hexapi_point)
+        self.__map_label = MapLabel(parent=None,
+                                    center=self.__latest_hexapi_point)
         map_area.setWidget(self.__map_label)
 
         main_layout = QHBoxLayout()
@@ -170,9 +175,9 @@ class HexapiGUI(QWidget):
 
     def __handel_key_presses(self):
         if self.__auto_return:
-            if self.__op_sign(self.__pitch) or\
-               self.__op_sign(self.__roll) or\
-               self.__op_sign(self.__yaw):
+            if self.__op_sign(self.__pitch) or \
+                    self.__op_sign(self.__roll) or \
+                    self.__op_sign(self.__yaw):
                 self.__pitch = self.__pitch + self.__op_sign(self.__pitch)
                 self.__roll = self.__roll + self.__op_sign(self.__roll)
                 self.__yaw = self.__yaw + self.__op_sign(self.__yaw)
@@ -323,20 +328,20 @@ class HexapiGUI(QWidget):
         mode_static_text = self.__create_text("Mode:", QtCore.Qt.AlignLeft)
         self.__mode_value_text = self.__create_text("0", QtCore.Qt.AlignRight)
 
-        key_map = "W: +Pitch\n"\
-            "S: -Pitch\n"\
-            "A: +Roll\n"\
-            "D: -Roll\n"\
-            "Q: +Yaw\n"\
-            "E: -Yaw\n"\
-            "R: +Altitude\n"\
-            "F: -Altitude\n"\
-            "C: Clear values\n"\
-            "L: Land\n"\
-            "K: Kill motors\n"\
-            "1: Flight mode FAIL_SAFE\n"\
-            "2: Flight mode MANUAL\n"\
-            "3: Flight mode KEEP ALTITUDE\n"
+        key_map = "W: +Pitch\n" \
+                  "S: -Pitch\n" \
+                  "A: +Roll\n" \
+                  "D: -Roll\n" \
+                  "Q: +Yaw\n" \
+                  "E: -Yaw\n" \
+                  "R: +Altitude\n" \
+                  "F: -Altitude\n" \
+                  "C: Clear values\n" \
+                  "L: Land\n" \
+                  "K: Kill motors\n" \
+                  "1: Flight mode FAIL_SAFE\n" \
+                  "2: Flight mode MANUAL\n" \
+                  "3: Flight mode KEEP ALTITUDE\n"
 
         keys_text = self.__create_text(key_map, QtCore.Qt.AlignLeft)
 
@@ -431,7 +436,7 @@ class HexapiGUI(QWidget):
         self.__pitch_value_text.setText(str(self.__pitch))
         self.__roll_value_text.setText(str(self.__roll))
         self.__yaw_value_text.setText(str(self.__yaw))
-        self.__altitude_value_text.setText(str(self.__altitude+100))
+        self.__altitude_value_text.setText(str(self.__altitude + 100))
         self.__mode_value_text.setText(self.__mode_switch)
 
 
