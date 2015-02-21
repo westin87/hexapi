@@ -12,7 +12,7 @@ from PyQt5 import QtCore
 
 from hexagui.network.network_handler import NetworkHandler
 from hexagui.widgets.map_label import MapLabel
-from common.gps_data import GPSData
+from hexacommon.common.gps_data import GPSData
 
 
 class HexapiGUI(QWidget):
