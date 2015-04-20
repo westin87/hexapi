@@ -86,10 +86,13 @@ class Main:
         self.__gps_program.register_callbacks(self.__nh)
 
 
-if __name__ == '__main__':
+def main():
     main = Main()
 
     # If ctrl + c abort nice.
     signal.signal(signal.SIGINT, main.stop)
 
     main.run()
+
+if __name__ == '__main__':
+    main()

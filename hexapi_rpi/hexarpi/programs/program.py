@@ -1,4 +1,4 @@
-import utils.movement as movement
+from hexarpi.utils import movement
 
 
 class Program(object):

@@ -25,7 +25,7 @@ class HexapiGUI(QWidget):
             'resources/app_style.qss')
 
         with open(style_file_path, 'r') as style_file_object:
-            app.setStyleSheet(style_file_object.read())
+            self.setStyleSheet(style_file_object.read())
 
         self.__altitude = -100
         self.__pitch = 0
@@ -440,9 +440,13 @@ class HexapiGUI(QWidget):
         self.__mode_value_text.setText(self.__mode_switch)
 
 
-if __name__ == "__main__":
+def main():
     logging.basicConfig(filename='hexapi_gui.log', level=logging.DEBUG)
     app = QApplication([])
     win = HexapiGUI()
     win.show()
     sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    main()

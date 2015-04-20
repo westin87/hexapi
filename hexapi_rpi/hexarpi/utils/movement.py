@@ -6,10 +6,10 @@ rpi_hosts = ['hexapi', 'raspberrypi']
 
 if platform.node() in rpi_hosts:
     print "MV: Running on RPI"
-    import utils.Adafruit_PWM_Servo_Driver as ada
+    import hexarpi.utils.Adafruit_PWM_Servo_Driver as ada
 else:
     print "MV: Running on local"
-    import utils.stubs as ada
+    import hexarpi.utils.stubs as ada
 
 
 class Movement():

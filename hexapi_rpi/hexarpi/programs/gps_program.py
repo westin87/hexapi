@@ -1,6 +1,6 @@
 import time
 
-from programs.program import Program
+from hexarpi.programs.program import Program
 
 
 class GpsProgram(Program):

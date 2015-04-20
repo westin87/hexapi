@@ -1,8 +1,8 @@
 import time
 
-from programs import program
-from utils import gps_util
-from utils import orientation
+from hexarpi.programs import program
+from hexarpi.utils import gps_util
+from hexarpi.utils import orientation
 
 
 class RcProgram(program.Program):

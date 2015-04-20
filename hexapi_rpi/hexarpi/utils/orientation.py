@@ -6,14 +6,14 @@ rpi_hosts = ['hexapi', 'raspberrypi']
 
 if platform.node() in rpi_hosts:
     print "MV: Running on RPI"
-    from hexarpi.smbus import SMBus
+    from smbus import SMBus
 else:
     print "MV: Running on local"
     from hexarpi.utils.stubs import SMBus
 
 
 # --- Constants from LSM303D datasheet ---
-LSM303D = 0x1d
+LSM303D = 0x1D
 LSM303D_WHO_AM_I = 0b01001001  # Device id
 
 # Control register addresses
@@ -34,7 +34,7 @@ LSM303D_MAG_Y_MSB = 0x0B
 LSM303D_MAG_Z_LSB = 0x0C
 LSM303D_MAG_Z_MSB = 0x0D
 
-#Registers holding twos-complemented MSB and LSB of magnetometer readings
+#Registers holding twos-complemented MSB and LSB of accelerometer readings
 LSM303D_ACC_X_LSB = 0x28
 LSM303D_ACC_X_MSB = 0x29
 LSM303D_ACC_Y_LSB = 0x2A
@@ -47,21 +47,24 @@ LSM303D_TEMP_MSB = 0x05
 LSM303D_TEMP_LSB = 0x06
 
 # --- Constants from L3GD20H datasheet ---
-L3GD20H = 0x35
-L3GD20H_WHO_AM_I = 0b11010111 # Device id
+L3GD20H = 0x6B
+L3GD20H_WHO_AM_I = 0b11010111  # Device id
 
+# Control register addresses
 L3GD20H_CTRL_1 = 0x20  # General settings
 L3GD20H_CTRL_2 = 0x21  # Filter configuration
 L3GD20H_CTRL_3 = 0x22  # Interrupts
 L3GD20H_CTRL_4 = 0x23  # Data format and self-test
 L3GD20H_CTRL_5 = 0x24  # FIFO and other settings
 
+#Registers holding twos-complemented MSB and LSB of gyroscope readings
 L3GD20H_COM_X_LSB = 0x28
 L3GD20H_COM_X_MSB = 0x29
 L3GD20H_COM_Y_LSB = 0x2A
 L3GD20H_COM_Y_MSB = 0x2B
 L3GD20H_COM_Z_LSB = 0x2C
 L3GD20H_COM_Z_MSB = 0x2D
+
 
 class Orientation():
     class __Orientation():
@@ -74,9 +77,9 @@ class Orientation():
                 print "No LSM303D detected"
 
             if self.__i2c_bus.read_byte_data(L3GD20H, 0x0f) == L3GD20H_WHO_AM_I:
-                print "LSM303D detected successfully."
+                print "L3GD20H detected successfully."
             else:
-                print "No LSM303D detected"
+                print "No L3GD20H detected"
 
             self.__configure_LSM303D()
             self.__configure_L3GD20H()
@@ -101,6 +104,13 @@ class Orientation():
             self.__write_byte(L3GD20H, L3GD20H_CTRL_5, 0b00000000)  # no FIFO, no HP filter
 
         def __combine_two_comp(self, msb, lsb):
+            if msb is None:
+                print "Warning 1"
+                msb = 0
+            if lsb is None:
+                print "Warning 2"
+                lsb = 0
+
             value = (msb << 8) | lsb
 
             if value & 0x8000:
@@ -109,6 +119,7 @@ class Orientation():
             return value
 
         def get_acceleration(self):
+            print "Reading acc"
             acceleration_x = self.__combine_two_comp(
                 self.__read_byte(LSM303D, LSM303D_ACC_X_MSB),
                 self.__read_byte(LSM303D, LSM303D_ACC_X_LSB))
@@ -122,6 +133,7 @@ class Orientation():
             return acceleration_x, acceleration_y, acceleration_z
 
         def get_magnetic_field(self):
+            print "Reading mag"
             magnetic_x = self.__combine_two_comp(
                 self.__read_byte(LSM303D, LSM303D_MAG_X_MSB),
                 self.__read_byte(LSM303D, LSM303D_MAG_X_LSB))
@@ -135,6 +147,7 @@ class Orientation():
             return magnetic_x, magnetic_y, magnetic_z
 
         def get_angular_rate(self):
+            print "Reading ang"
             angular_rate_x = self.__combine_two_comp(
                 self.__read_byte(L3GD20H, L3GD20H_COM_X_MSB),
                 self.__read_byte(L3GD20H, L3GD20H_COM_X_LSB))
