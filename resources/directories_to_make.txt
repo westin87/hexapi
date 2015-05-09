@@ -1,0 +1,8 @@
+hexapi_rpi
+hexapi_rpi/hexarpi
+hexapi_rpi/hexarpi/network
+hexapi_rpi/hexarpi/programs
+hexapi_rpi/hexarpi/utils
+hexapi_common/
+hexapi_common/hexacommon/
+hexapi_common/hexacommon/common/

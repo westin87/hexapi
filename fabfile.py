@@ -47,8 +47,7 @@ def get_gps_data():
 
 
 def start_hexapi():
-    run("nohup sudo {} >> /home/pi/code/rpi.log".format(
-        os.path.join(pi_home, "hexapi_rpi", "hexarpi", "rpi.py")))
+    run("nohup sudo hexarpi >> /home/pi/code/rpi.log")
 
 
 def test():
