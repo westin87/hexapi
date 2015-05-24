@@ -1,8 +1,6 @@
 from __future__ import division
 import platform
 import threading
-import time
-import os
 from copy import copy
 
 from hexacommon.common.gps_data import GPSData
@@ -28,11 +26,6 @@ class GPSPoller(threading.Thread):
         self.__gps_data = gps_data
         self.__stop = False
         self.__gpsd = gps.gps(mode=gps.WATCH_ENABLE)
-        self.__datafile = os.path.join(os.path.dirname(
-            os.path.abspath(__file__)), "gps_data.log")
-        with open(self.__datafile, mode='a+') as f:
-            f.write("GPS collection started: {}\n"
-                    .format(time.strftime("%y/%m/%d %H:%M:%S")))
 
     def run(self):
         while not self.__stop:
@@ -40,12 +33,6 @@ class GPSPoller(threading.Thread):
 
             for atter in GPS_ATTRIBUTES:
                 self.__gps_data.data[atter] = getattr(self.__gpsd.fix, atter)
-
-            with open(self.__datafile, 'a+') as f:
-                f.write(str(self.__gps_data)+"\n")
-
-        with open(self.__datafile, 'a+') as f:
-            f.write("\n")
 
     def stop(self):
         self.__stop = True
