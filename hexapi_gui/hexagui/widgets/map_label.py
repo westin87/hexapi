@@ -16,11 +16,15 @@ class MapLabel(QLabel):
         self.__input_path = []
         self.__center = center
         self.__zoom = zoom
-        self.setPixmap(gmaps.get_map(self.__center, self.__zoom))
         self.__mouse_press_pos = None
         self.__dy_offset = 0
         self.__dx_offset = 0
         self.__count = 0
+
+        self.setMinimumSize(480, 480)
+        self.setMaximumSize(640, 640)
+
+        self.setPixmap(gmaps.get_map(self.__center, self.__zoom))
 
     def __set_map(self):
         self.__update_drawing_paths()
@@ -117,11 +121,11 @@ class MapLabel(QLabel):
 
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
-        size = self.parent().size()
-        self.setGeometry(0, 0, size.width(), size.height())
+        geometry =  self.geometry()
 
         painter.setBrush(QtGui.QColor(20, 40, 60))
-        painter.drawRect(0, 0, size.width(), size.height())
+        painter.setPen(QtGui.QColor(20, 40, 60))
+        painter.drawRect(0, 0, geometry.width(), geometry.height())
         painter.drawPixmap(self.__dx_offset, self.__dy_offset, self.pixmap())
 
         painter.setBrush(QtGui.QBrush())

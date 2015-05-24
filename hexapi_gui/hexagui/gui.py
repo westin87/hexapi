@@ -7,7 +7,7 @@ import pkg_resources
 
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, \
     QGridLayout, QScrollArea, QLineEdit, QComboBox, QTabWidget, \
-    QHBoxLayout
+    QHBoxLayout, QMainWindow, QToolBar, QMessageBox
 from PyQt5 import QtCore
 
 from hexagui.network.network_handler import NetworkHandler
@@ -15,11 +15,11 @@ from hexagui.widgets.map_label import MapLabel
 from hexacommon.common.gps_data import GPSData
 
 
-class HexapiGUI(QWidget):
+class HexapiGUI(QMainWindow):
     def __init__(self):
         super(HexapiGUI, self).__init__()
         self.setWindowTitle("Hexacopter controller")
-        self.setGeometry(0, 0, 1024, 640)
+        self.setMinimumSize(1024, 640)
 
         style_file_path = pkg_resources.resource_filename(__name__,
             'resources/app_style.qss')
@@ -34,23 +34,15 @@ class HexapiGUI(QWidget):
         self.__mode_switch = "ATTI"
         self.__latest_hexapi_point = (58.376801, 15.647814)
 
-        map_area = QScrollArea()
-        map_area.setMinimumSize(480, 480)
-        map_area.setMaximumSize(640, 640)
-        self.__map_label = MapLabel(parent=None,
-                                    center=self.__latest_hexapi_point)
-        map_area.setWidget(self.__map_label)
+        self.__map = MapLabel(parent=self, center=self.__latest_hexapi_point)
 
-        main_layout = QHBoxLayout()
-        control_layout = QGridLayout()
+        self.setCentralWidget(self.__map)
 
-        main_layout.addWidget(map_area)
-        main_layout.addLayout(control_layout)
-
-        self.__add_network_control(control_layout)
-        self.__add_mode_selection(control_layout)
-        self.__add_control_display(control_layout)
-        self.setLayout(main_layout)
+        self.__add_network_control()
+        self.__add_mode_selection()
+        self.__add_logging_control()
+        self.__add_rc_control()
+        #self.__add_gps_control()
 
         key_timer = QtCore.QTimer(self)
         key_timer.timeout.connect(self.__handel_key_presses)
@@ -121,6 +113,7 @@ class HexapiGUI(QWidget):
         if self.__connected:
             self.__nh.send_command("PING")
 
+    @QtCore.pyqtSlot()
     def __connect(self):
         logging.info("MA: Setting host")
         self.__connected = True
@@ -139,16 +132,19 @@ class HexapiGUI(QWidget):
         self.__nh.send_command("SET_MODE", self.__mode_switch)
         self.__update_control_values()
 
+    @QtCore.pyqtSlot()
     def __start_motors(self):
         self.__nh.send_command("START_MOTORS")
         self.__reset_controls()
         self.__altitude = -75
         self.__update_control_values()
 
+    @QtCore.pyqtSlot()
     def __land(self):
         self.__nh.send_command("LAND")
         self.__reset_controls()
 
+    @QtCore.pyqtSlot()
     def __kill(self):
         self.__nh.send_command("KILL")
         self.__reset_controls()
@@ -165,6 +161,7 @@ class HexapiGUI(QWidget):
     def __in_rang(self, value):
         return value >= -100 and value <= 100
 
+    @QtCore.pyqtSlot()
     def __set_auto_return(self):
         if self.__auto_return:
             self.__auto_return_button.setDown(False)
@@ -244,30 +241,7 @@ class HexapiGUI(QWidget):
 
             self.__update_control_values()
 
-    def __add_network_control(self, layout):
-        host_text = QLabel()
-        host_text.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignCenter)
-        host_text.setText("Connect to hexapi:")
-
-        self.__host_edit = QLineEdit()
-        self.__host_edit.setMinimumWidth(100)
-        self.__host_edit.setAlignment(QtCore.Qt.AlignRight)
-        self.__host_edit.setPlaceholderText("192.169.1.2")
-        connect_button = QPushButton("Set host")
-        connect_button.clicked.connect(self.__connect)
-
-        land_button = QPushButton("Land")
-        land_button.clicked.connect(self.__land)
-
-        kill_button = QPushButton("Kill!")
-        kill_button.clicked.connect(self.__kill)
-
-        layout.addWidget(host_text, 0, 0, 1, 1)
-        layout.addWidget(self.__host_edit, 0, 2, 1, 3)
-        layout.addWidget(connect_button, 0, 5, 1, 1)
-        layout.addWidget(land_button, 2, 0, 1, 6)
-        layout.addWidget(kill_button, 3, 0, 1, 6)
-
+    @QtCore.pyqtSlot()
     def __switch_control_mode(self):
         command = ""
         if self.__mode_selection.currentText() == "RC":
@@ -279,35 +253,96 @@ class HexapiGUI(QWidget):
 
         self.__nh.send_command(command)
 
-    def __add_mode_selection(self, layout):
+    def __add_network_control(self):
+        toolbar = QToolBar("Network")
+
+        host_text = QLabel()
+        host_text.setText("Connect to hexapi:")
+
+        self.__host_edit = QLineEdit()
+        self.__host_edit.setMinimumWidth(100)
+        self.__host_edit.setMaximumWidth(140)
+        self.__host_edit.setAlignment(QtCore.Qt.AlignRight)
+        self.__host_edit.setPlaceholderText("192.169.1.2")
+
+        toolbar.addWidget(host_text)
+        toolbar.addWidget(self.__host_edit)
+
+        toolbar.addAction("Set host", self.__connect)
+        toolbar.addAction("Land", self.__land)
+        toolbar.addAction("Kill!", self.__kill)
+
+        self.addToolBar(QtCore.Qt.TopToolBarArea, toolbar)
+
+    def __add_mode_selection(self):
+        toolbar = QToolBar("Mode selection")
+
         mode_text = QLabel()
-        mode_text.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignCenter)
         mode_text.setText("Select mode:")
+
         self.__mode_selection = QComboBox()
+        self.__mode_selection.setMinimumWidth(100)
+        self.__mode_selection.setMaximumWidth(140)
         self.__mode_selection.addItem("RC")
         self.__mode_selection.addItem("GPS")
-        select_button = QPushButton("Select")
-        select_button.clicked.connect(self.__switch_control_mode)
-        layout.addWidget(mode_text, 1, 0, 1, 1)
-        layout.addWidget(self.__mode_selection, 1, 3, 1, 2)
-        layout.addWidget(select_button, 1, 5, 1, 1)
 
-    def __add_control_display(self, layout):
-        tabs = QTabWidget()
+        toolbar.addWidget(mode_text)
+        toolbar.addWidget(self.__mode_selection)
+        toolbar.addAction("Select", self.__switch_control_mode)
+
+        self.addToolBar(QtCore.Qt.TopToolBarArea, toolbar)
+
+    def __add_logging_control(self):
+
+        file_tag = QLabel()
+        file_tag.setAlignment(QtCore.Qt.AlignCenter)
+        file_tag.setText("Log file tag:")
+
+        self.__tag_edit = QLineEdit()
+        self.__tag_edit.setMinimumWidth(100)
+        self.__tag_edit.setMaximumWidth(140)
+        self.__tag_edit.setAlignment(QtCore.Qt.AlignRight)
+
+        toolbar = QToolBar("Logging control")
+        toolbar.addWidget(file_tag)
+        toolbar.addWidget(self.__tag_edit)
+        toolbar.addAction("Start logging", self.__start_logging)
+        toolbar.addAction("Stop logging", self.__stop_logging)
+
+        self.addToolBar(QtCore.Qt.RightToolBarArea, toolbar)
+
+    @QtCore.pyqtSlot()
+    def __start_logging(self):
+        file_tag = self.__tag_edit.text()
+        self.__nh.send_command("START_LOGGING", file_tag)
+
+    @QtCore.pyqtSlot()
+    def __stop_logging(self):
+        self.__nh.send_command("STOP_LOGGING")
+
+    def __add_rc_control(self):
+        toolbar = QToolBar("Control display")
+
         rc_layout = QGridLayout()
-        gps_layout = QGridLayout()
-
         self.__add_rc_control_display(rc_layout)
-        self.__add_gps_control_display(gps_layout)
-
         rc_widget = QWidget()
-        gps_widget = QWidget()
-
         rc_widget.setLayout(rc_layout)
+
+        toolbar.addWidget(rc_widget)
+
+        self.addToolBar(QtCore.Qt.RightToolBarArea, toolbar)
+
+    def __add_gps_control(self):
+        toolbar = QToolBar("Control display")
+
+        gps_layout = QGridLayout()
+        self.__add_gps_control_display(gps_layout)
+        gps_widget = QWidget()
         gps_widget.setLayout(gps_layout)
-        tabs.addTab(rc_widget, "RC")
-        tabs.addTab(gps_widget, "GPS")
-        layout.addWidget(tabs, 4, 0, 1, 6)
+
+        toolbar.addWidget(gps_widget)
+
+        self.addToolBar(QtCore.Qt.RightToolBarArea, toolbar)
 
     def __add_rc_control_display(self, layout):
 
@@ -328,23 +363,6 @@ class HexapiGUI(QWidget):
         mode_static_text = self.__create_text("Mode:", QtCore.Qt.AlignLeft)
         self.__mode_value_text = self.__create_text("0", QtCore.Qt.AlignRight)
 
-        key_map = "W: +Pitch\n" \
-                  "S: -Pitch\n" \
-                  "A: +Roll\n" \
-                  "D: -Roll\n" \
-                  "Q: +Yaw\n" \
-                  "E: -Yaw\n" \
-                  "R: +Altitude\n" \
-                  "F: -Altitude\n" \
-                  "C: Clear values\n" \
-                  "L: Land\n" \
-                  "K: Kill motors\n" \
-                  "1: Flight mode FAIL_SAFE\n" \
-                  "2: Flight mode MANUAL\n" \
-                  "3: Flight mode KEEP ALTITUDE\n"
-
-        keys_text = self.__create_text(key_map, QtCore.Qt.AlignLeft)
-
         self.__update_control_values()
 
         auto_return_button = QPushButton("Auto return")
@@ -352,6 +370,9 @@ class HexapiGUI(QWidget):
 
         start_button = QPushButton("Start motors")
         start_button.clicked.connect(self.__start_motors)
+
+        help_button = QPushButton("Show RC help")
+        help_button.clicked.connect(self.__show_rc_help)
 
         layout.addWidget(pitch_static_text, 0, 0, 1, 1,
                          QtCore.Qt.AlignVCenter)
@@ -378,41 +399,55 @@ class HexapiGUI(QWidget):
         layout.addWidget(self.__mode_value_text, 4, 1, 1, 1,
                          QtCore.Qt.AlignVCenter)
 
-        layout.addWidget(auto_return_button, 0, 3, 1, 2,
+        layout.addWidget(auto_return_button, 5, 0, 1, 2,
+                         QtCore.Qt.AlignVCenter)
+        layout.addWidget(start_button, 6, 0, 1, 2,
+                         QtCore.Qt.AlignVCenter)
+        layout.addWidget(help_button, 7, 0, 1, 2,
                          QtCore.Qt.AlignVCenter)
 
-        layout.addWidget(start_button, 1, 3, 1, 2,
-                         QtCore.Qt.AlignVCenter)
-        layout.addWidget(keys_text, 5, 0, 4, 2,
-                         QtCore.Qt.AlignVCenter)
+    @QtCore.pyqtSlot()
+    def __show_rc_help(self):
 
-        for i in range(5):
-            layout.setRowMinimumHeight(i, 26)
+        help_text = "W: +Pitch\n" \
+                    "S: -Pitch\n" \
+                    "A: +Roll\n" \
+                    "D: -Roll\n" \
+                    "Q: +Yaw\n" \
+                    "E: -Yaw\n" \
+                    "R: +Altitude\n" \
+                    "F: -Altitude\n" \
+                    "C: Clear values\n" \
+                    "L: Land\n" \
+                    "K: Kill motors\n" \
+                    "1: Flight mode FAIL_SAFE\n" \
+                    "2: Flight mode MANUAL\n" \
+                    "3: Flight mode KEEP ALTITUDE\n"
 
-        layout.setRowStretch(6, 1)
+        QMessageBox.information(self, "RC controls", help_text)
 
     def __add_gps_control_display(self, layout):
         draw_route_button = QPushButton("Draw route")
-        draw_route_button.clicked.connect(self.__map_label.enable_drawing)
+        draw_route_button.clicked.connect(self.__map.enable_drawing)
         layout.addWidget(draw_route_button, 0, 0, 1, 1, QtCore.Qt.AlignVCenter)
 
         set_route_button = QPushButton("Set route")
-        set_route_button.clicked.connect(self.__map_label.disable_drawing)
-        path = self.__map_label.get_drawn_path()
+        set_route_button.clicked.connect(self.__map.disable_drawing)
+        path = self.__map.get_drawn_path()
         # Send path
         layout.addWidget(set_route_button, 0, 1, 1, 1, QtCore.Qt.AlignVCenter)
 
         clear_route_button = QPushButton("Clear route")
-        clear_route_button.clicked.connect(self.__map_label.clear_drawn_path)
+        clear_route_button.clicked.connect(self.__map.clear_drawn_path)
         layout.addWidget(clear_route_button, 0, 2, 1, 1, QtCore.Qt.AlignVCenter)
 
         center_button = QPushButton("Center map")
-        center_button.clicked.connect(lambda: self.__map_label.set_center(
+        center_button.clicked.connect(lambda: self.__map.set_center(
             self.__latest_hexapi_point))
         layout.addWidget(center_button, 1, 0, 1, 1, QtCore.Qt.AlignVCenter)
 
         show_path_button = QPushButton("Show path")
-        show_path_button.clicked.connect(self.__map_label.show_input_path)
+        show_path_button.clicked.connect(self.__map.show_input_path)
         layout.addWidget(show_path_button, 2, 0, 1, 1, QtCore.Qt.AlignVCenter)
 
         start_button = QPushButton("Start motors")
@@ -420,7 +455,7 @@ class HexapiGUI(QWidget):
         layout.addWidget(start_button, 1, 1, 1, 1, QtCore.Qt.AlignVCenter)
 
         start_route_button = QPushButton("Fly route")
-        start_route_button.clicked.connect(self.__map_label.clear_drawn_path)
+        start_route_button.clicked.connect(self.__map.clear_drawn_path)
         # Send start command
         layout.addWidget(start_route_button, 1, 2, 1, 1, QtCore.Qt.AlignVCenter)
 
