@@ -3,6 +3,7 @@ import socket
 import threading
 import time
 
+from hexacommon.common import singleton
 
 class SharedData():
     last_ping_time = 0
@@ -10,6 +11,8 @@ class SharedData():
 
 
 class NetworkHandler():
+    __metaclass__ = singleton.Singleton
+
     """ Manages the network connection with the client. Other
     software registers callback functions together with a network command.
     The callback functions are then invoked when a matching network

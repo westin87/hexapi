@@ -1,5 +1,6 @@
 from __future__ import division
 import platform
+from hexacommon.common import singleton
 
 # Check if on hexcopter or local, if local import stub for testing.
 rpi_hosts = ['hexapi', 'raspberrypi']
@@ -10,8 +11,6 @@ if platform.node() in rpi_hosts:
 else:
     print "MV: Running on local"
     import hexarpi.utils.stubs as ada
-
-from hexacommon.common import singleton
 
 
 class Movement():

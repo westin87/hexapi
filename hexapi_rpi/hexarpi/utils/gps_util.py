@@ -4,6 +4,7 @@ import threading
 from copy import copy
 
 from hexacommon.common.gps_data import GPSData
+from hexacommon.common import singleton
 
 # Check if on hexcopter or local, if local import stub for testing.
 rpi_hosts = ['hexapi', 'raspberrypi']
@@ -39,27 +40,16 @@ class GPSPoller(threading.Thread):
 
 
 class GPSUtil():
-    class __GPSUtil():
-        def __init__(self):
-            self.__gps_data = GPSData()
-            self.__gps_poller = GPSPoller(self.__gps_data)
-
-            self.__gps_poller.start()
-
-        def get_gps_data(self):
-            return copy(self.__gps_data)
-
-        def kill(self):
-            self.__gps_poller.stop()
-
-    __instance = None
+    __metaclass__ = singleton.Singleton
 
     def __init__(self):
-        if not GPSUtil.__instance:
-            GPSUtil.__instance = GPSUtil.__GPSUtil()
+        self.__gps_data = GPSData()
+        self.__gps_poller = GPSPoller(self.__gps_data)
 
-    def __getattr__(self, value):
-        return getattr(self.__instance, value)
+        self.__gps_poller.start()
 
-    def __setattr__(self, attr, value):
-        return setattr(self.__instance, attr, value)
+    def get_gps_data(self):
+        return copy(self.__gps_data)
+
+    def kill(self):
+        self.__gps_poller.stop()
