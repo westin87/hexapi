@@ -42,12 +42,12 @@ def start_gps():
     run("sudo gpsd /dev/ttyAMA0")
 
 
-def get_gps_data():
-    get("/home/pi/code/hexapi_rpi/utils/gps_data.log", ".")
+def get_log_data():
+    get("/home/pi/hexapi_logs", ".")
 
 
 def start_hexapi():
-    run("nohup sudo hexarpi >> /home/pi/code/rpi.log")
+    run("nohup sudo hexarpi >> /home/pi/hexapi_logs/rpi.log")
 
 
 def test():

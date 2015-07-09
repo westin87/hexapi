@@ -1,10 +1,20 @@
 import time
 import pickle
 import os
+import platform
 
 from hexarpi.programs import program
 from hexarpi.utils import gps_util
 from hexarpi.utils import orientation
+
+# Check if running on hexcopter or local, for special case setup
+rpi_hosts = ['hexapi', 'raspberrypi']
+if platform.node() in rpi_hosts:
+    print "RC: Running on RPI"
+    user = "~pi"
+else:
+    print "RC: Running on local"
+    user = "~"
 
 
 class RcProgram(program.Program):
@@ -15,7 +25,6 @@ class RcProgram(program.Program):
         self.__nh = nh
 
         self.__log_file_path = ""
-        self.__log_interval = 0.1
         self.__log_data = dict()
 
         self.__log_sensor_data = False
@@ -33,8 +42,6 @@ class RcProgram(program.Program):
                     self.__orientation.get_acceleration())
                 self.__log_data['ang'].append(
                     self.__orientation.get_angular_rate())
-
-                time.sleep(self.__log_interval)
 
             time.sleep(0.01)
         self.__gps.kill()
@@ -56,6 +63,7 @@ class RcProgram(program.Program):
         self._mov.set_mode(mode_trans[mode])
 
     def start_motors(self):
+        print "Starting engines"
         self._mov.set_pitch(-100)
         self._mov.set_roll(-100)
         self._mov.set_yaw(-100)
@@ -66,8 +74,7 @@ class RcProgram(program.Program):
         self._mov.set_yaw(0)
         self._mov.set_altitude(-75)
 
-    def start_logging(self, file_tag, log_interval="0.1"):
-        self.__log_interval = float(log_interval)
+    def start_logging(self, file_tag):
         self.__log_sensor_data = True
 
         timestamp = time.strftime("%y%m%d%H%M%S")
@@ -81,12 +88,16 @@ class RcProgram(program.Program):
         self.__log_data['acc'] = []
         self.__log_data['ang'] = []
 
+        print "RC: Starting logging to {}".format(self.__log_file_path)
+
     def stop_logging(self):
         self.__log_sensor_data = False
         time.sleep(0.2)
 
         with open(self.__log_file_path, 'w') as file_object:
             pickle.dump(self.__log_data, file_object)
+
+        print "RC: Done with logging"
 
     def register_callbacks(self):
         self.__nh.register_callback(self.set_pitch, "SET_PITCH")
@@ -100,7 +111,7 @@ class RcProgram(program.Program):
 
 
 def prepare_logging_path(filename):
-    user_home = os.path.expanduser("~")
+    user_home = os.path.expanduser(user)
     log_dir = os.path.join(user_home, "hexapi_logs")
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
