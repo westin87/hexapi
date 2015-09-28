@@ -7,3 +7,6 @@ class Singleton(type):
                 super(Singleton, cls).__call__(*args, **kwargs)
 
         return cls.__instances[cls]
+
+    def delete(cls):
+        del cls.__instances[cls]

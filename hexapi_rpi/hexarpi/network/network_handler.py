@@ -5,6 +5,7 @@ import time
 
 from hexacommon.common import singleton
 
+
 class SharedData():
     last_ping_time = 0
     client_ip = ""
@@ -110,16 +111,11 @@ class NetworkHandlerThread(threading.Thread):
 
             decoded_data = data.decode()
 
-            if decoded_data == '':
-                break
-            else:
+            if decoded_data:
                 splitted_data = map(unicode.strip, decoded_data.split("; "))
                 command = splitted_data[0]
 
-                if len(splitted_data) > 1:
-                    arguments = splitted_data[1:]
-                else:
-                    arguments = []
+                arguments = splitted_data[1:] if len(splitted_data) > 1 else []
 
                 if command == "PING":
 
