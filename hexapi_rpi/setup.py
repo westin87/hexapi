@@ -8,5 +8,5 @@ setup(
     entry_points={
         "console_scripts": [
             "hexarpi = hexarpi.rpi:main"]
-    }
+    }, requires=['numpy']
 )
