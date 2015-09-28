@@ -1,12 +1,9 @@
-#!/usr/bin/python3
-
-import unittest
 from mock import patch, MagicMock
 from hexarpi.utils import movement
 from hexarpi.network import network_handler
 
 
-class MovementTestCases(unittest.TestCase):
+class TestSetMovements:
 
     @patch('hexarpi.utils.movement.ada')
     def setup(self, mock_pwm_module):
@@ -18,9 +15,6 @@ class MovementTestCases(unittest.TestCase):
         del self.move
 
     def test_set_pitch_0(self):
-        self.setup()
-
-        print(self.move)
         self.move.set_pitch(0)
 
         self.mock_pwm.setPWM.assert_called_with(1, 0, 307)
@@ -28,9 +22,6 @@ class MovementTestCases(unittest.TestCase):
         self.teardown()
 
     def test_set_pitch_100(self):
-        self.setup()
-
-        print(self.move)
         self.move.set_pitch(100)
 
         self.mock_pwm.setPWM.assert_called_with(1, 0, 409)
@@ -38,17 +29,14 @@ class MovementTestCases(unittest.TestCase):
         self.teardown()
 
     def test_set_pitch_minus_100(self):
-        self.setup()
-
-        print(self.move)
         self.move.set_pitch(-100)
 
         self.mock_pwm.setPWM.assert_called_with(1, 0, 204)
 
 
-class NetworkHandlerTestCases(unittest.TestCase):
+class TestNetworkHandler:
 
-    def setUp(self):
+    def setup(self):
         self.port = 12325
         self.nh = network_handler.NetworkHandler(self.port)
 
@@ -72,4 +60,3 @@ class NetworkHandlerTestCases(unittest.TestCase):
         self.nh.stop()
 
         callback.assert_called_with(*arguments)
-
