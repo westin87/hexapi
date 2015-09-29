@@ -36,12 +36,29 @@ class HexacopterRegulator:
         self._direction_estimate = Point2D(0, 0)
 
         self._deriver = Deriver(samples)
-
-        self.yaw_regulator = PDRegulator(self.yaw_k, self.yaw_td)
-        self.pitch_regulator = PDRegulator(self.pitch_k, self.pitch_td)
+        self.create_new_pd_regulators()
 
     def set_initial_position(self, position):
         self._position_estimate = position
+
+    def create_new_pd_regulators(self):
+        self.yaw_regulator = PDRegulator(self.yaw_k, self.yaw_td)
+        self.pitch_regulator = PDRegulator(self.pitch_k, self.pitch_td)
+
+    def update(self, position, target_position):
+        self._update_position_and_direction_estimate(position)
+
+        target_direction = self._calculate_target_direction(target_position)
+
+        direction = self._calculate_turning_direction(target_direction)
+
+        yaw = direction * self.yaw_regulator.update(
+            target_direction, self._direction_estimate)
+
+        pitch = self.pitch_regulator.update(
+            target_position, self._position_estimate)
+
+        return pitch, yaw
 
     def _update_position_and_direction_estimate(self, new_position):
 
@@ -79,18 +96,3 @@ class HexacopterRegulator:
             orthogonal_target_direction / abs(orthogonal_target_direction))
 
         return -math.copysign(1, projection)
-
-    def update(self, position, target_position):
-        self._update_position_and_direction_estimate(position)
-
-        target_direction = self._calculate_target_direction(target_position)
-
-        direction = self._calculate_turning_direction(target_direction)
-
-        yaw = direction * self.yaw_regulator.update(
-            target_direction, self._direction_estimate)
-
-        pitch = self.pitch_regulator.update(
-            target_position, self._position_estimate)
-
-        return pitch, yaw
