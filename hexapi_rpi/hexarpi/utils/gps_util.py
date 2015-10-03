@@ -24,24 +24,22 @@ GPS_ATTRIBUTES = ['altitude', 'climb', 'epc', 'epd', 'eps', 'ept', 'epv',
 class GPSPoller(threading.Thread):
     def __init__(self, gps_data):
         threading.Thread.__init__(self)
-        self.__gps_data = gps_data
-        self.__stop = False
-        self.__gpsd = gps.gps(mode=gps.WATCH_ENABLE)
+        self._gps_data = gps_data
+        self._stop = False
+        self._gpsd = gps.gps(mode=gps.WATCH_ENABLE)
 
     def run(self):
-        while not self.__stop:
-            self.__gpsd.next()
+        while not self._stop:
+            self._gpsd.next()
 
             for atter in GPS_ATTRIBUTES:
-                self.__gps_data.data[atter] = getattr(self.__gpsd.fix, atter)
+                self._gps_data.data[atter] = getattr(self._gpsd.fix, atter)
 
     def stop(self):
-        self.__stop = True
+        self._stop = True
 
 
-class GPSUtil():
-    __metaclass__ = singleton.Singleton
-
+class GPSUtil:
     def __init__(self):
         self.__gps_data = GPSData()
         self.__gps_poller = GPSPoller(self.__gps_data)

@@ -4,8 +4,8 @@ from hexarpi.programs.program import Program
 
 
 class GpsProgram(Program):
-    def __init__(self):
-        super(GpsProgram, self).__init__()
+    def __init__(self, movement, network_handler):
+        super(GpsProgram, self).__init__(movement, network_handler)
 
     def run(self):
         print "GP: Starting GPS program"
