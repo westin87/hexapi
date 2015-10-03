@@ -8,51 +8,63 @@ from hexarpi.tests.integration.hexacopter_model import HexacopterModel
 from hexarpi.utils.regulators import HexacopterRegulator
 
 
-target_position = Point2D(0.8, 0.3)
-start_position = Point2D(0.5, 0.5)
+class TestRegulator:
+    def __init__(self):
+        start_position = Point2D(0.5, 0.5)
+        self.target_position = Point2D(0.8, 0.3)
 
-copter = HexacopterModel(start_position)
-regulator = HexacopterRegulator()
-regulator.set_initial_position(start_position)
-copter.pitch = 0.1
-copter.external_force = Point2D(0, 0.04)
+        self.copter = HexacopterModel(start_position)
 
-fig, ax = plt.subplots()
-ax.set_ylim([0, 1])
-ax.set_xlim([0, 1])
+        self.regulator = HexacopterRegulator()
+        self.regulator.set_initial_position(start_position)
 
-target = ax.plot(target_position.x, target_position.y, "ob").pop()
+        self.copter.external_force = Point2D(0, 0.04)
 
-copter_position = ax.plot(copter.position.x, copter.position.y, "or").pop()
-direction = ax.plot(copter.position.x, copter.position.y, "og").pop()
+        self.fig, ax = plt.subplots()
+        ax.set_ylim([0, 1])
+        ax.set_xlim([0, 1])
 
-estimate_copter_position = ax.plot(copter.position.x, copter.position.y, "sr").pop()
-estimate_direction = ax.plot(copter.position.x, copter.position.y, "sg").pop()
+        # Plot target position
+        self.target = ax.plot(self.target_position.x, self.target_position.y, "ob").pop()
 
-def animate(i):
-    print(i, flush=True)
+        # Plot copter position and direction
+        self.copter_position = ax.plot(self.copter.position.x, self.copter.position.y, "or").pop()
+        self.direction = ax.plot(self.copter.position.x, self.copter.position.y, "og").pop()
 
-    if i > 300:
-        target_position = Point2D(0.2, 0.6)
-        target.set_xdata(target_position.x)
-        target.set_ydata(target_position.y)
-    else:
-        target_position = Point2D(0.8, 0.3)
+        # Plot estimated copter position and direction
+        self.estimate_copter_position = ax.plot(self.copter.position.x, self.copter.position.y, "sr").pop()
+        self.estimate_direction = ax.plot(self.copter.position.x, self.copter.position.y, "sg").pop()
 
-    copter.update()
-    copter.pitch, copter.yaw = regulator.update(copter.noisy_position, target_position)
+    def iterate(self, i):
 
-    print(copter, flush=True)
+        # Change target after 300 iterations
+        if i == 300:
+            self.target_position = Point2D(0.2, 0.6)
+            self.target.set_xdata(self.target_position.x)
+            self.target.set_ydata(self.target_position.y)
 
-    copter_position.set_xdata(copter.position.x)
-    copter_position.set_ydata(copter.position.y)
-    direction.set_xdata(copter.position.x + copter.direction_vector.x / 100)
-    direction.set_ydata(copter.position.y + copter.direction_vector.y / 100)
+        # Update regulator with data
+        self.copter.update()
+        self.copter.pitch, self.copter.yaw = self.regulator.update(
+            self.copter.noisy_position, self.target_position)
 
-    estimate_copter_position.set_xdata(regulator._position_estimate.x)
-    estimate_copter_position.set_ydata(regulator._position_estimate.y)
-    estimate_direction.set_xdata(regulator._position_estimate.x + regulator._direction_estimate.x / 100)
-    estimate_direction.set_ydata(regulator._position_estimate.y + regulator._direction_estimate.y / 100)
+        # Update copter position and direction
+        self.copter_position.set_xdata(self.copter.position.x)
+        self.copter_position.set_ydata(self.copter.position.y)
+        self.direction.set_xdata(self.copter.position.x + self.copter.direction_vector.x / 100)
+        self.direction.set_ydata(self.copter.position.y + self.copter.direction_vector.y / 100)
 
-ani = FuncAnimation(fig, animate, np.arange(1, 600), interval=25, repeat=False)
-plt.show()
+        # Update estimated copter position and direction
+        self.estimate_copter_position.set_xdata(self.regulator._position_estimate.x)
+        self.estimate_copter_position.set_ydata(self.regulator._position_estimate.y)
+        self.estimate_direction.set_xdata(
+            self.regulator._position_estimate.x + self.regulator._direction_estimate.x / 100)
+        self.estimate_direction.set_ydata(
+            self.regulator._position_estimate.y + self.regulator._direction_estimate.y / 100)
+
+    def run(self):
+        FuncAnimation(self.fig, self.iterate, np.arange(1, 600), interval=25, repeat=False)
+        plt.show()
+
+test = TestRegulator()
+test.run()
