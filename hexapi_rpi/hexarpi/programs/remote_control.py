@@ -4,7 +4,7 @@ import os
 import platform
 from hexacommon.common.coordinates import Point2D
 
-from hexarpi.programs import program
+from hexarpi.programs.program import Program
 from hexarpi.utils import orientation
 
 # Check if running on hexcopter or local, for special case setup
@@ -19,7 +19,7 @@ else:
     user = "~"
 
 
-class RcProgram(program.Program):
+class RcProgram(Program):
     def __init__(self, movement, network_handler, gps):
         super(RcProgram, self).__init__(movement, network_handler)
 

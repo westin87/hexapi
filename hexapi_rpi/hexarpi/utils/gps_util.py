@@ -14,7 +14,7 @@ if platform.node() in rpi_hosts:
     import gps
 else:
     print "GPS: Running on local"
-    import utils.stubs as gps
+    import hexarpi.utils.stubs as gps
 
 GPS_ATTRIBUTES = ['altitude', 'climb', 'epc', 'epd', 'eps', 'ept', 'epv',
                   'epx', 'epy', 'latitude', 'longitude', 'mode', 'speed',

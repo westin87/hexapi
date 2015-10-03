@@ -9,10 +9,11 @@ sys.dont_write_bytecode = True
 from hexarpi.network import network_handler
 from hexarpi.programs import remote_control
 from hexarpi.utils import movement
+from hexarpi.utils import gps_util
 
 
 class Main:
-    def __init__(self, gps_util=None):
+    def __init__(self):
         init_time = time.strftime("%y-%m-%d %H:%M:%S")
         print "==== Initiating hexapi " + init_time + " ===="
 
@@ -90,7 +91,6 @@ class Main:
         self._nh.register_callback(self.stop, "LAND")
         self._nh.register_callback(self.kill, "KILL")
         self._rc_program.register_callbacks()
-        self._gps_program.register_callbacks(self._nh)
 
 
 def main():

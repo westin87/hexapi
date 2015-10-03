@@ -1,7 +1,4 @@
-from hexarpi.utils import movement
-
-
-class Program:
+class Program(object):
     """docstring for Program"""
     def __init__(self, movement, network_handler):
         self._mov = movement
