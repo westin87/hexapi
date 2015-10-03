@@ -153,8 +153,7 @@ class RcProgram(program.Program):
 
     @staticmethod
     def _get_current_position(gps_data):
-        current_position = Point2D(
-            float(gps_data.latitude), float(gps_data.longitude))
+        current_position = Point2D(gps_data.latitude, gps_data.longitude)
 
         return current_position
 

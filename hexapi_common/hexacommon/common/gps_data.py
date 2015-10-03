@@ -4,7 +4,8 @@ GPS_ATTRIBUTES = ['altitude', 'climb', 'epc', 'epd', 'eps', 'ept', 'epv',
                   'epx', 'epy', 'latitude', 'longitude', 'mode', 'speed',
                   'time', 'track']
 
-class GPSData():
+
+class GPSData:
     def __init__(self, data_str=None):
         self.data = dict()
 

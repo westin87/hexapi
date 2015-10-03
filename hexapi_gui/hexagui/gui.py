@@ -27,129 +27,129 @@ class HexapiGUI(QMainWindow):
         with open(style_file_path, 'r') as style_file_object:
             self.setStyleSheet(style_file_object.read())
 
-        self.__altitude = -100
-        self.__pitch = 0
-        self.__yaw = 0
-        self.__roll = 0
-        self.__mode_switch = "ATTI"
-        self.__latest_hexapi_point = (58.376801, 15.647814)
+        self._altitude = -100
+        self._pitch = 0
+        self._yaw = 0
+        self._roll = 0
+        self._mode_switch = "ATTI"
+        self._latest_hexapi_point = (58.376801, 15.647814)
 
-        self.__map = MapLabel(parent=self, center=self.__latest_hexapi_point)
+        self._map = MapLabel(parent=self, center=self._latest_hexapi_point)
 
-        self.setCentralWidget(self.__map)
+        self.setCentralWidget(self._map)
 
-        self.__add_network_control()
-        self.__add_mode_selection()
-        self.__add_logging_control()
-        self.__add_rc_control()
+        self._add_network_control()
+        self._add_mode_selection()
+        self._add_logging_control()
+        self._add_rc_control()
         #self.__add_gps_control()
 
         key_timer = QtCore.QTimer(self)
-        key_timer.timeout.connect(self.__handel_key_presses)
+        key_timer.timeout.connect(self._handel_key_presses)
         key_timer.start(30)
 
         ping_timer = QtCore.QTimer(self)
-        ping_timer.timeout.connect(self.__send_ping)
+        ping_timer.timeout.connect(self._send_ping)
         ping_timer.start(500)
 
-        self.__connected = False
-        self.__auto_return = False
-        self.__pressed_keys = []
-        self.__nh = NetworkHandler()
-        self.__nh.register_callback(self.__receive_gps_data, "GPS_DATA")
-        self.__nh.register_callback(self.__receive_acc_data, "ACC_DATA")
-        self.__nh.register_callback(self.__receive_mag_data, "MAG_DATA")
-        self.__nh.register_callback(self.__receive_ang_data, "ANG_DATA")
-        self.__nh.start()
+        self._connected = False
+        self._auto_return = False
+        self._pressed_keys = []
+        self._nh = NetworkHandler()
+        self._nh.register_callback(self._receive_gps_data, "GPS_DATA")
+        self._nh.register_callback(self._receive_acc_data, "ACC_DATA")
+        self._nh.register_callback(self._receive_mag_data, "MAG_DATA")
+        self._nh.register_callback(self._receive_ang_data, "ANG_DATA")
+        self._nh.start()
 
     def closeEvent(self, event):
-        self.__nh.stop()
+        self._nh.stop()
         super(HexapiGUI, self).closeEvent(event)
 
     def keyPressEvent(self, event):
-        self.__pressed_keys.append(event.key())
+        self._pressed_keys.append(event.key())
 
     def keyReleaseEvent(self, event):
-        if event.key() in self.__pressed_keys:
-            self.__pressed_keys.remove(event.key())
+        if event.key() in self._pressed_keys:
+            self._pressed_keys.remove(event.key())
 
-    def __receive_gps_data(self, raw_gps_data):
+    def _receive_gps_data(self, raw_gps_data):
         gps_data = GPSData(data_str=raw_gps_data)
-        self.__latest_hexapi_point = (gps_data.data['latitude'],
+        self._latest_hexapi_point = (gps_data.data['latitude'],
                                       gps_data.data['longitude'])
 
-        self.__map_label.add_point(self.__latest_hexapi_point)
+        self._map.add_point(self._latest_hexapi_point)
 
-    def __receive_mag_data(self, raw_mag_data):
+    def _receive_mag_data(self, raw_mag_data):
         mag_data = eval(raw_mag_data)
         timestamp = time.strftime("%y%m%d%H%M%S")
         with open("mag_data_{}.txt".format(timestamp), mode='a') as fo:
             fo.write("{}\n".format(mag_data))
         print("Mag: {}".format(mag_data))
 
-    def __receive_acc_data(self, raw_acc_data):
+    def _receive_acc_data(self, raw_acc_data):
         acc_data = eval(raw_acc_data)
         timestamp = time.strftime("%y%m%d%H%M%S")
         with open("acc_data_{}.txt".format(timestamp), mode='a') as fo:
             fo.write("{}\n".format(acc_data))
         print("Acc: {}".format(acc_data))
 
-    def __receive_ang_data(self, raw_acc_data):
+    def _receive_ang_data(self, raw_acc_data):
         acc_data = eval(raw_acc_data)
         timestamp = time.strftime("%y%m%d%H%M%S")
         with open("ang_data_{}.txt".format(timestamp), mode='a') as fo:
             fo.write("{}\n".format(acc_data))
         print("Ang: {}".format(acc_data))
 
-    def __reset_controls(self):
-        self.__altitude = -100
-        self.__pitch = 0
-        self.__yaw = 0
-        self.__roll = 0
-        self.__mode_switch = "ATTI"
-        self.__update_control_values()
+    def _reset_controls(self):
+        self._altitude = -100
+        self._pitch = 0
+        self._yaw = 0
+        self._roll = 0
+        self._mode_switch = "ATTI"
+        self._update_control_values()
 
-    def __send_ping(self):
-        if self.__connected:
-            self.__nh.send_command("PING")
+    def _send_ping(self):
+        if self._connected:
+            self._nh.send_command("PING")
 
     @QtCore.pyqtSlot()
-    def __connect(self):
+    def _connect(self):
         logging.info("MA: Setting host")
-        self.__connected = True
-        host_and_port = self.__host_edit.text().split(":")
+        self._connected = True
+        host_and_port = self._host_edit.text().split(":")
 
         if len(host_and_port) == 2:
             port = int(host_and_port[1])
         else:
             port = 4092
-        self.__nh.set_host(host_and_port[0], port)
+        self._nh.set_host(host_and_port[0], port)
 
-        self.__nh.send_command("SET_PITCH", self.__pitch)
-        self.__nh.send_command("SET_ROLL", self.__roll)
-        self.__nh.send_command("SET_YAW", self.__yaw)
-        self.__nh.send_command("SET_ALTITUDE", self.__altitude)
-        self.__nh.send_command("SET_MODE", self.__mode_switch)
-        self.__update_control_values()
-
-    @QtCore.pyqtSlot()
-    def __start_motors(self):
-        self.__nh.send_command("START_MOTORS")
-        self.__reset_controls()
-        self.__altitude = -75
-        self.__update_control_values()
+        self._nh.send_command("SET_PITCH", self._pitch)
+        self._nh.send_command("SET_ROLL", self._roll)
+        self._nh.send_command("SET_YAW", self._yaw)
+        self._nh.send_command("SET_ALTITUDE", self._altitude)
+        self._nh.send_command("SET_MODE", self._mode_switch)
+        self._update_control_values()
 
     @QtCore.pyqtSlot()
-    def __land(self):
-        self.__nh.send_command("LAND")
-        self.__reset_controls()
+    def _start_motors(self):
+        self._nh.send_command("START_MOTORS")
+        self._reset_controls()
+        self._altitude = -75
+        self._update_control_values()
 
     @QtCore.pyqtSlot()
-    def __kill(self):
-        self.__nh.send_command("KILL")
-        self.__reset_controls()
+    def _land(self):
+        self._nh.send_command("LAND")
+        self._reset_controls()
 
-    def __op_sign(self, x):
+    @QtCore.pyqtSlot()
+    def _kill(self):
+        self._nh.send_command("KILL")
+        self._reset_controls()
+
+    def _op_sign(self, x):
         if x > 0:
             ans = -1
         elif x < 0:
@@ -158,173 +158,173 @@ class HexapiGUI(QMainWindow):
             ans = 0
         return ans
 
-    def __in_rang(self, value):
+    def _in_rang(self, value):
         return value >= -100 and value <= 100
 
     @QtCore.pyqtSlot()
-    def __set_auto_return(self):
-        if self.__auto_return:
+    def _set_auto_return(self):
+        if self._auto_return:
             self.__auto_return_button.setDown(False)
-            self.__auto_return = False
+            self._auto_return = False
         else:
             self.__auto_return_button.setDown(True)
-            self.__auto_return = True
+            self._auto_return = True
 
-    def __handel_key_presses(self):
-        if self.__auto_return:
-            if self.__op_sign(self.__pitch) or \
-                    self.__op_sign(self.__roll) or \
-                    self.__op_sign(self.__yaw):
-                self.__pitch = self.__pitch + self.__op_sign(self.__pitch)
-                self.__roll = self.__roll + self.__op_sign(self.__roll)
-                self.__yaw = self.__yaw + self.__op_sign(self.__yaw)
-                self.__nh.send_command("SET_PITCH", self.__pitch)
-                self.__nh.send_command("SET_ROLL", self.__roll)
-                self.__nh.send_command("SET_YAW", self.__yaw)
-                self.__update_control_values()
+    def _handel_key_presses(self):
+        if self._auto_return:
+            if self._op_sign(self._pitch) or \
+                    self._op_sign(self._roll) or \
+                    self._op_sign(self._yaw):
+                self._pitch = self._pitch + self._op_sign(self._pitch)
+                self._roll = self._roll + self._op_sign(self._roll)
+                self._yaw = self._yaw + self._op_sign(self._yaw)
+                self._nh.send_command("SET_PITCH", self._pitch)
+                self._nh.send_command("SET_ROLL", self._roll)
+                self._nh.send_command("SET_YAW", self._yaw)
+                self._update_control_values()
 
-        for key in self.__pressed_keys:
+        for key in self._pressed_keys:
             if key == QtCore.Qt.Key_W:
-                if self.__in_rang(self.__pitch + 2):
-                    self.__pitch += 2
-                    self.__nh.send_command("SET_PITCH", self.__pitch)
+                if self._in_rang(self._pitch + 2):
+                    self._pitch += 2
+                    self._nh.send_command("SET_PITCH", self._pitch)
             if key == QtCore.Qt.Key_S:
-                if self.__in_rang(self.__pitch - 2):
-                    self.__pitch -= 2
-                    self.__nh.send_command("SET_PITCH", self.__pitch)
+                if self._in_rang(self._pitch - 2):
+                    self._pitch -= 2
+                    self._nh.send_command("SET_PITCH", self._pitch)
             if key == QtCore.Qt.Key_A:
-                if self.__in_rang(self.__roll - 2):
-                    self.__roll -= 2
-                    self.__nh.send_command("SET_ROLL", self.__roll)
+                if self._in_rang(self._roll - 2):
+                    self._roll -= 2
+                    self._nh.send_command("SET_ROLL", self._roll)
             if key == QtCore.Qt.Key_D:
-                if self.__in_rang(self.__roll + 2):
-                    self.__roll += 2
-                    self.__nh.send_command("SET_ROLL", self.__roll)
+                if self._in_rang(self._roll + 2):
+                    self._roll += 2
+                    self._nh.send_command("SET_ROLL", self._roll)
             if key == QtCore.Qt.Key_Q:
-                if self.__in_rang(self.__yaw - 2):
-                    self.__yaw -= 2
-                    self.__nh.send_command("SET_YAW", self.__yaw)
+                if self._in_rang(self._yaw - 2):
+                    self._yaw -= 2
+                    self._nh.send_command("SET_YAW", self._yaw)
             if key == QtCore.Qt.Key_E:
-                if self.__in_rang(self.__yaw + 2):
-                    self.__yaw += 2
-                    self.__nh.send_command("SET_YAW", self.__yaw)
+                if self._in_rang(self._yaw + 2):
+                    self._yaw += 2
+                    self._nh.send_command("SET_YAW", self._yaw)
             if key == QtCore.Qt.Key_R:
-                if self.__in_rang(self.__altitude + 1):
-                    self.__altitude += 1
-                    self.__nh.send_command("SET_ALTITUDE", self.__altitude)
+                if self._in_rang(self._altitude + 1):
+                    self._altitude += 1
+                    self._nh.send_command("SET_ALTITUDE", self._altitude)
             if key == QtCore.Qt.Key_F:
-                if self.__in_rang(self.__altitude - 1):
-                    self.__altitude -= 1
-                    self.__nh.send_command("SET_ALTITUDE", self.__altitude)
+                if self._in_rang(self._altitude - 1):
+                    self._altitude -= 1
+                    self._nh.send_command("SET_ALTITUDE", self._altitude)
             if key == QtCore.Qt.Key_1:
-                self.__mode_switch = "FS"
-                self.__nh.send_command("SET_MODE", self.__mode_switch)
+                self._mode_switch = "FS"
+                self._nh.send_command("SET_MODE", self._mode_switch)
             if key == QtCore.Qt.Key_2:
-                self.__mode_switch = "MAN"
-                self.__nh.send_command("SET_MODE", self.__mode_switch)
+                self._mode_switch = "MAN"
+                self._nh.send_command("SET_MODE", self._mode_switch)
             if key == QtCore.Qt.Key_3:
-                self.__mode_switch = "ATTI"
-                self.__nh.send_command("SET_MODE", self.__mode_switch)
+                self._mode_switch = "ATTI"
+                self._nh.send_command("SET_MODE", self._mode_switch)
             if key == QtCore.Qt.Key_C:
-                self.__pitch = 0
-                self.__roll = 0
-                self.__yaw = 0
-                self.__nh.send_command("SET_PITCH", self.__pitch)
-                self.__nh.send_command("SET_ROLL", self.__roll)
-                self.__nh.send_command("SET_YAW", self.__yaw)
+                self._pitch = 0
+                self._roll = 0
+                self._yaw = 0
+                self._nh.send_command("SET_PITCH", self._pitch)
+                self._nh.send_command("SET_ROLL", self._roll)
+                self._nh.send_command("SET_YAW", self._yaw)
             if key == QtCore.Qt.Key_L:
-                self.__land()
+                self._land()
             if key == QtCore.Qt.Key_O:
-                self.__start_motors()
+                self._start_motors()
             if key == QtCore.Qt.Key_K:
-                self.__kill()
+                self._kill()
 
-            self.__update_control_values()
+            self._update_control_values()
 
     @QtCore.pyqtSlot()
-    def __switch_control_mode(self):
+    def _switch_control_mode(self):
         command = ""
-        if self.__mode_selection.currentText() == "RC":
+        if self._mode_selection.currentText() == "RC":
             command = "START_PROG_RC"
-        elif self.__mode_selection.currentText() == "GPS":
+        elif self._mode_selection.currentText() == "GPS":
             command = "START_PROG_GPS"
         else:
             command = "START_PROG_RC"
 
-        self.__nh.send_command(command)
+        self._nh.send_command(command)
 
-    def __add_network_control(self):
+    def _add_network_control(self):
         toolbar = QToolBar("Network")
 
         host_text = QLabel()
         host_text.setText("Connect to hexapi:")
 
-        self.__host_edit = QLineEdit()
-        self.__host_edit.setMinimumWidth(100)
-        self.__host_edit.setMaximumWidth(140)
-        self.__host_edit.setAlignment(QtCore.Qt.AlignRight)
-        self.__host_edit.setPlaceholderText("192.169.1.2")
+        self._host_edit = QLineEdit()
+        self._host_edit.setMinimumWidth(100)
+        self._host_edit.setMaximumWidth(140)
+        self._host_edit.setAlignment(QtCore.Qt.AlignRight)
+        self._host_edit.setPlaceholderText("192.169.1.2")
 
         toolbar.addWidget(host_text)
-        toolbar.addWidget(self.__host_edit)
+        toolbar.addWidget(self._host_edit)
 
-        toolbar.addAction("Set host", self.__connect)
-        toolbar.addAction("Land", self.__land)
-        toolbar.addAction("Kill!", self.__kill)
+        toolbar.addAction("Set host", self._connect)
+        toolbar.addAction("Land", self._land)
+        toolbar.addAction("Kill!", self._kill)
 
         self.addToolBar(QtCore.Qt.TopToolBarArea, toolbar)
 
-    def __add_mode_selection(self):
+    def _add_mode_selection(self):
         toolbar = QToolBar("Mode selection")
 
         mode_text = QLabel()
         mode_text.setText("Select mode:")
 
-        self.__mode_selection = QComboBox()
-        self.__mode_selection.setMinimumWidth(100)
-        self.__mode_selection.setMaximumWidth(140)
-        self.__mode_selection.addItem("RC")
-        self.__mode_selection.addItem("GPS")
+        self._mode_selection = QComboBox()
+        self._mode_selection.setMinimumWidth(100)
+        self._mode_selection.setMaximumWidth(140)
+        self._mode_selection.addItem("RC")
+        self._mode_selection.addItem("GPS")
 
         toolbar.addWidget(mode_text)
-        toolbar.addWidget(self.__mode_selection)
-        toolbar.addAction("Select", self.__switch_control_mode)
+        toolbar.addWidget(self._mode_selection)
+        toolbar.addAction("Select", self._switch_control_mode)
 
         self.addToolBar(QtCore.Qt.TopToolBarArea, toolbar)
 
-    def __add_logging_control(self):
+    def _add_logging_control(self):
 
         file_tag = QLabel()
         file_tag.setAlignment(QtCore.Qt.AlignCenter)
         file_tag.setText("Log file tag:")
 
-        self.__tag_edit = QLineEdit()
-        self.__tag_edit.setMinimumWidth(100)
-        self.__tag_edit.setMaximumWidth(140)
-        self.__tag_edit.setAlignment(QtCore.Qt.AlignRight)
+        self._tag_edit = QLineEdit()
+        self._tag_edit.setMinimumWidth(100)
+        self._tag_edit.setMaximumWidth(140)
+        self._tag_edit.setAlignment(QtCore.Qt.AlignRight)
 
         toolbar = QToolBar("Logging control")
         toolbar.addWidget(file_tag)
-        toolbar.addWidget(self.__tag_edit)
-        toolbar.addAction("Start logging", self.__start_logging)
-        toolbar.addAction("Stop logging", self.__stop_logging)
+        toolbar.addWidget(self._tag_edit)
+        toolbar.addAction("Start logging", self._start_logging)
+        toolbar.addAction("Stop logging", self._stop_logging)
 
         self.addToolBar(QtCore.Qt.RightToolBarArea, toolbar)
 
     @QtCore.pyqtSlot()
-    def __start_logging(self):
-        file_tag = self.__tag_edit.text()
-        self.__nh.send_command("START_LOGGING", file_tag)
+    def _start_logging(self):
+        file_tag = self._tag_edit.text()
+        self._nh.send_command("START_LOGGING", file_tag)
 
     @QtCore.pyqtSlot()
-    def __stop_logging(self):
-        self.__nh.send_command("STOP_LOGGING")
+    def _stop_logging(self):
+        self._nh.send_command("STOP_LOGGING")
 
-    def __add_rc_control(self):
+    def _add_rc_control(self):
         toolbar = QToolBar("Control display")
 
         rc_layout = QGridLayout()
-        self.__add_rc_control_display(rc_layout)
+        self._add_rc_control_display(rc_layout)
         rc_widget = QWidget()
         rc_widget.setLayout(rc_layout)
 
@@ -332,11 +332,11 @@ class HexapiGUI(QMainWindow):
 
         self.addToolBar(QtCore.Qt.RightToolBarArea, toolbar)
 
-    def __add_gps_control(self):
+    def _add_gps_control(self):
         toolbar = QToolBar("Control display")
 
         gps_layout = QGridLayout()
-        self.__add_gps_control_display(gps_layout)
+        self._add_gps_control_display(gps_layout)
         gps_widget = QWidget()
         gps_widget.setLayout(gps_layout)
 
@@ -344,35 +344,35 @@ class HexapiGUI(QMainWindow):
 
         self.addToolBar(QtCore.Qt.RightToolBarArea, toolbar)
 
-    def __add_rc_control_display(self, layout):
+    def _add_rc_control_display(self, layout):
 
-        pitch_static_text = self.__create_text("Pitch:", QtCore.Qt.AlignLeft)
-        self.__pitch_value_text = self.__create_text("0", QtCore.Qt.AlignRight)
+        pitch_static_text = self._create_text("Pitch:", QtCore.Qt.AlignLeft)
+        self.__pitch_value_text = self._create_text("0", QtCore.Qt.AlignRight)
 
-        roll_static_text = self.__create_text("Roll:", QtCore.Qt.AlignLeft)
-        self.__roll_value_text = self.__create_text("0", QtCore.Qt.AlignRight)
+        roll_static_text = self._create_text("Roll:", QtCore.Qt.AlignLeft)
+        self.__roll_value_text = self._create_text("0", QtCore.Qt.AlignRight)
 
-        yaw_static_text = self.__create_text("Yaw:", QtCore.Qt.AlignLeft)
-        self.__yaw_value_text = self.__create_text("0", QtCore.Qt.AlignRight)
+        yaw_static_text = self._create_text("Yaw:", QtCore.Qt.AlignLeft)
+        self.__yaw_value_text = self._create_text("0", QtCore.Qt.AlignRight)
 
-        altitude_static_text = self.__create_text("Altitude:",
+        altitude_static_text = self._create_text("Altitude:",
                                                   QtCore.Qt.AlignLeft)
-        self.__altitude_value_text = self.__create_text("0",
+        self.__altitude_value_text = self._create_text("0",
                                                         QtCore.Qt.AlignRight)
 
-        mode_static_text = self.__create_text("Mode:", QtCore.Qt.AlignLeft)
-        self.__mode_value_text = self.__create_text("0", QtCore.Qt.AlignRight)
+        mode_static_text = self._create_text("Mode:", QtCore.Qt.AlignLeft)
+        self.__mode_value_text = self._create_text("0", QtCore.Qt.AlignRight)
 
-        self.__update_control_values()
+        self._update_control_values()
 
         auto_return_button = QPushButton("Auto return")
-        auto_return_button.clicked.connect(self.__set_auto_return)
+        auto_return_button.clicked.connect(self._set_auto_return)
 
         start_button = QPushButton("Start motors")
-        start_button.clicked.connect(self.__start_motors)
+        start_button.clicked.connect(self._start_motors)
 
         help_button = QPushButton("Show RC help")
-        help_button.clicked.connect(self.__show_rc_help)
+        help_button.clicked.connect(self._show_rc_help)
 
         layout.addWidget(pitch_static_text, 0, 0, 1, 1,
                          QtCore.Qt.AlignVCenter)
@@ -407,7 +407,7 @@ class HexapiGUI(QMainWindow):
                          QtCore.Qt.AlignVCenter)
 
     @QtCore.pyqtSlot()
-    def __show_rc_help(self):
+    def _show_rc_help(self):
 
         help_text = "W: +Pitch\n" \
                     "S: -Pitch\n" \
@@ -426,53 +426,53 @@ class HexapiGUI(QMainWindow):
 
         QMessageBox.information(self, "RC controls", help_text)
 
-    def __add_gps_control_display(self, layout):
+    def _add_gps_control_display(self, layout):
         draw_route_button = QPushButton("Draw route")
-        draw_route_button.clicked.connect(self.__map.enable_drawing)
+        draw_route_button.clicked.connect(self._map.enable_drawing)
         layout.addWidget(draw_route_button, 0, 0, 1, 1, QtCore.Qt.AlignVCenter)
 
         set_route_button = QPushButton("Set route")
-        set_route_button.clicked.connect(self.__map.disable_drawing)
-        path = self.__map.get_drawn_path()
+        set_route_button.clicked.connect(self._map.disable_drawing)
+        path = self._map.get_drawn_path()
         # Send path
         layout.addWidget(set_route_button, 0, 1, 1, 1, QtCore.Qt.AlignVCenter)
 
         clear_route_button = QPushButton("Clear route")
-        clear_route_button.clicked.connect(self.__map.clear_drawn_path)
+        clear_route_button.clicked.connect(self._map.clear_drawn_path)
         layout.addWidget(clear_route_button, 0, 2, 1, 1, QtCore.Qt.AlignVCenter)
 
         center_button = QPushButton("Center map")
-        center_button.clicked.connect(lambda: self.__map.set_center(
-            self.__latest_hexapi_point))
+        center_button.clicked.connect(lambda: self._map.set_center(
+            self._latest_hexapi_point))
         layout.addWidget(center_button, 1, 0, 1, 1, QtCore.Qt.AlignVCenter)
 
         show_path_button = QPushButton("Show path")
-        show_path_button.clicked.connect(self.__map.show_input_path)
+        show_path_button.clicked.connect(self._map.show_input_path)
         layout.addWidget(show_path_button, 2, 0, 1, 1, QtCore.Qt.AlignVCenter)
 
         start_button = QPushButton("Start motors")
-        start_button.clicked.connect(self.__start_motors)
+        start_button.clicked.connect(self._start_motors)
         layout.addWidget(start_button, 1, 1, 1, 1, QtCore.Qt.AlignVCenter)
 
         start_route_button = QPushButton("Fly route")
-        start_route_button.clicked.connect(self.__map.clear_drawn_path)
+        start_route_button.clicked.connect(self._map.clear_drawn_path)
         # Send start command
         layout.addWidget(start_route_button, 1, 2, 1, 1, QtCore.Qt.AlignVCenter)
 
         layout.setRowStretch(20, 1)
 
-    def __create_text(self, text, alignment):
+    def _create_text(self, text, alignment):
         text_label = QLabel()
         text_label.setAlignment(alignment)
         text_label.setText(text)
         return text_label
 
-    def __update_control_values(self):
-        self.__pitch_value_text.setText(str(self.__pitch))
-        self.__roll_value_text.setText(str(self.__roll))
-        self.__yaw_value_text.setText(str(self.__yaw))
-        self.__altitude_value_text.setText(str(self.__altitude + 100))
-        self.__mode_value_text.setText(self.__mode_switch)
+    def _update_control_values(self):
+        self.__pitch_value_text.setText(str(self._pitch))
+        self.__roll_value_text.setText(str(self._roll))
+        self.__yaw_value_text.setText(str(self._yaw))
+        self.__altitude_value_text.setText(str(self._altitude + 100))
+        self.__mode_value_text.setText(self._mode_switch)
 
 
 def main():

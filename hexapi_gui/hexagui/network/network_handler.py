@@ -6,38 +6,38 @@ import datetime
 
 class NetworkHandler:
     def __init__(self, in_port=4094):
-        self.__network_socket = socket.socket(socket.AF_INET,
+        self._network_socket = socket.socket(socket.AF_INET,
                                               socket.SOCK_DGRAM)
         self.thread = None
-        self.__host = ""
-        self.__callback_list = dict()
-        self.__in_port = in_port
-        self.__out_port = 0
+        self._host = ""
+        self._callback_list = dict()
+        self._in_port = in_port
+        self._out_port = 0
         return
 
     def set_host(self, host, out_port=4092):
-        self.__host = host
-        self.__out_port = out_port
+        self._host = host
+        self._out_port = out_port
 
     def register_callback(self, function, command):
         """ Register callbacks, takes a function and a network command."""
-        self.__callback_list[command] = function
+        self._callback_list[command] = function
 
     def send_command(self, command, *args):
-        if self.__host:
+        if self._host:
             data = command
             if args:
                 data += "; " + "; ".join(map(str, args))
 
-            self.__network_socket.sendto(data.encode(),
-                                         (self.__host, self.__out_port))
+            self._network_socket.sendto(data.encode(),
+                                         (self._host, self._out_port))
 
     def start(self):
         """ Starts the NetworkHandler, all callbacks needs to be registerd
         before this mathod is called. """
         logging.info("NH: Starting thread")
-        self.thread = NetworkHandlerThread(self.__in_port,
-                                           self.__callback_list)
+        self.thread = NetworkHandlerThread(self._in_port,
+                                           self._callback_list)
         self.thread.start()
 
     def stop(self):
@@ -51,45 +51,40 @@ class NetworkHandlerThread(threading.Thread):
     def __init__(self, port, callback_list):
         logging.info("NH: Thread created")
         threading.Thread.__init__(self)
-        self.__stop = False
-        self.__network_socket = socket.socket(socket.AF_INET,
-                                              socket.SOCK_DGRAM)
-        self.__port = port
-        self.__callback_list = callback_list
-        self.__network_socket.bind(('', self.__port))
-        self.__network_socket.settimeout(0.2)
+        self._stop = False
+        self._network_socket = socket.socket(socket.AF_INET,
+                                             socket.SOCK_DGRAM)
+        self._port = port
+        self._callback_list = callback_list
+        self._network_socket.bind(('', self._port))
+        self._network_socket.settimeout(0.2)
 
     def run(self):
         logging.info("NH: Thread started")
-        while not self.__stop:
+        while not self._stop:
             try:
-                data, _ =\
-                    self.__network_socket.recvfrom(1024)
+                data, _ = \
+                    self._network_socket.recvfrom(1024)
             except Exception:
                 continue
 
             decoded_data = data.decode()
 
-            if decoded_data == '':
-                break
-            else:
+            if decoded_data != '':
                 splitted_data = [e for e in
                                  map(str.strip, decoded_data.split("; "))]
 
                 command = splitted_data[0]
 
-                if len(splitted_data) > 1:
-                    arguments = splitted_data[1:]
-                else:
-                    arguments = []
+                arguments = splitted_data[1:] if len(splitted_data) > 1 else []
 
-                if command in self.__callback_list:
+                if command in self._callback_list:
                     logging.info("NH: Received command: {}".format(command))
-                    self.__callback_list[command](*arguments)
+                    self._callback_list[command](*arguments)
 
                 else:
                     logging.debug("NH: Received invalid command: {}"
                                   .format(command))
 
     def stop(self):
-        self.__stop = True
+        self._stop = True

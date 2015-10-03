@@ -1,7 +1,7 @@
 import math
 
 
-class Object2D():
+class Object2D:
     def __init__(self, x=0, y=0):
         if isinstance(x, tuple):
             self.x = x[0]
@@ -194,7 +194,7 @@ class Object2D():
                 type(first), type(second)))
 
 
-class Object3D():
+class Object3D:
     def __init__(self, z=0, y=0, x=0):
         if isinstance(z, tuple):
             self.z = z[0]
