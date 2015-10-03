@@ -23,14 +23,14 @@ class NetworkHandler():
         self.thread = None
         self._in_port = in_port
         self._out_port = out_port
-        self._callback_list = dict()
+        self._callback_container = dict()
         self._shared_data = SharedData()
         self._network_socket = socket.socket(socket.AF_INET,
                                               socket.SOCK_DGRAM)
 
     def register_callback(self, function, command):
         """ Register callbacks, takes a function and a network command."""
-        self._callback_list[command] = function
+        self._callback_container[command] = function
 
     def send_command(self, command, *args):
         if self._shared_data.client_ip:
@@ -47,7 +47,7 @@ class NetworkHandler():
         before this mathod is called. """
         print "NH: Starting thread"
         self.thread = NetworkHandlerThread(self._in_port, self._shared_data,
-                                           self._callback_list)
+                                           self._callback_container)
         self.thread.start()
 
     def stop(self):
@@ -77,14 +77,14 @@ class NetworkHandlerThread(threading.Thread):
     """ Runs the network communication in a thread so that all other execution
     remains unaffected. """
 
-    def __init__(self, port, shared_data,  callback_list):
+    def __init__(self, port, shared_data,  callback_container):
         print "NH: Thread created"
         threading.Thread.__init__(self)
         self._stop = False
         self._network_socket = socket.socket(socket.AF_INET,
                                              socket.SOCK_DGRAM)
         self._port = port
-        self._callback_list = callback_list
+        self._callback_container = callback_container
         self._network_socket.bind(('', self._port))
         self._network_socket.settimeout(0.2)
         self._first_ping = True
@@ -94,7 +94,7 @@ class NetworkHandlerThread(threading.Thread):
 
     def _command_abort(self):
         do_nothing = lambda x: 0
-        self._callback_list.get('LAND', do_nothing)()
+        self._callback_container.get('LAND', do_nothing)()
 
     def run(self):
         print "NH: Thread started"
@@ -123,11 +123,11 @@ class NetworkHandlerThread(threading.Thread):
                         self._ping_checker.start()
                         self._first_ping = False
 
-                elif command in self._callback_list:
+                elif command in self._callback_container:
                     print "NH: Received command: " + command +\
                           " with arguments: " + ", ".join(arguments)
 
-                    self._callback_list[command](*arguments)
+                    self._callback_container[command](*arguments)
 
                 else:
                     print "NH: Received invalid command: " + command

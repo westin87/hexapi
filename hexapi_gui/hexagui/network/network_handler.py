@@ -10,7 +10,7 @@ class NetworkHandler:
                                               socket.SOCK_DGRAM)
         self.thread = None
         self._host = ""
-        self._callback_list = dict()
+        self._callback_container = dict()
         self._in_port = in_port
         self._out_port = 0
         return
@@ -21,7 +21,7 @@ class NetworkHandler:
 
     def register_callback(self, function, command):
         """ Register callbacks, takes a function and a network command."""
-        self._callback_list[command] = function
+        self._callback_container[command] = function
 
     def send_command(self, command, *args):
         if self._host:
@@ -37,7 +37,7 @@ class NetworkHandler:
         before this mathod is called. """
         logging.info("NH: Starting thread")
         self.thread = NetworkHandlerThread(self._in_port,
-                                           self._callback_list)
+                                           self._callback_container)
         self.thread.start()
 
     def stop(self):
@@ -48,14 +48,14 @@ class NetworkHandlerThread(threading.Thread):
     """ Runs the network communication in a thread so that all other execution
     remains unaffected. """
 
-    def __init__(self, port, callback_list):
+    def __init__(self, port, callback_container):
         logging.info("NH: Thread created")
         threading.Thread.__init__(self)
         self._stop = False
         self._network_socket = socket.socket(socket.AF_INET,
                                              socket.SOCK_DGRAM)
         self._port = port
-        self._callback_list = callback_list
+        self._callback_container = callback_container
         self._network_socket.bind(('', self._port))
         self._network_socket.settimeout(0.2)
 
@@ -78,9 +78,9 @@ class NetworkHandlerThread(threading.Thread):
 
                 arguments = splitted_data[1:] if len(splitted_data) > 1 else []
 
-                if command in self._callback_list:
+                if command in self._callback_container:
                     logging.info("NH: Received command: {}".format(command))
-                    self._callback_list[command](*arguments)
+                    self._callback_container[command](*arguments)
 
                 else:
                     logging.debug("NH: Received invalid command: {}"
