@@ -5,13 +5,14 @@ import logging
 import time
 import pkg_resources
 
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, \
-    QGridLayout, QScrollArea, QLineEdit, QComboBox, QTabWidget, \
-    QHBoxLayout, QMainWindow, QToolBar, QMessageBox
+from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton,
+                             QGridLayout, QLineEdit, QComboBox, QMainWindow,
+                             QToolBar, QMessageBox)
 from PyQt5 import QtCore
 
 from hexagui.network.network_handler import NetworkHandler
 from hexagui.toolbars.regulator_toolbar import RegulatorToolbar
+from hexagui.toolbars.network_toolbar import NetworkToolbar
 from hexagui.widgets.map_label import MapLabel
 from hexacommon.common.gps_data import GPSData
 
@@ -39,8 +40,6 @@ class HexapiGUI(QMainWindow):
 
         self.setCentralWidget(self._map)
 
-        self._add_network_control()
-        self._add_mode_selection()
         self._add_logging_control()
         self._add_rc_control()
 
@@ -48,13 +47,9 @@ class HexapiGUI(QMainWindow):
         key_timer.timeout.connect(self._handel_key_presses)
         key_timer.start(30)
 
-        ping_timer = QtCore.QTimer(self)
-        ping_timer.timeout.connect(self._send_ping)
-        ping_timer.start(500)
-
-        self._connected = False
         self._auto_return = False
         self._pressed_keys = []
+
         self._nh = NetworkHandler()
         self._nh.register_callback(self._receive_gps_data, "GPS_DATA")
         self._nh.register_callback(self._receive_acc_data, "ACC_DATA")
@@ -63,6 +58,9 @@ class HexapiGUI(QMainWindow):
         self._nh.start()
 
         self.addToolBar(QtCore.Qt.RightToolBarArea, RegulatorToolbar(self._nh))
+        self.addToolBar(
+            QtCore.Qt.TopToolBarArea,
+            NetworkToolbar(self._nh, self._reset_controls))
 
     def closeEvent(self, event):
         self._nh.stop()
@@ -109,29 +107,7 @@ class HexapiGUI(QMainWindow):
         self._yaw = 0
         self._roll = 0
         self._mode_switch = "ATTI"
-        self._update_control_values()
 
-    def _send_ping(self):
-        if self._connected:
-            self._nh.send_command("PING")
-
-    @QtCore.pyqtSlot()
-    def _connect(self):
-        logging.info("MA: Setting host")
-        self._connected = True
-        host_and_port = self._host_edit.text().split(":")
-
-        if len(host_and_port) == 2:
-            port = int(host_and_port[1])
-        else:
-            port = 4092
-        self._nh.set_host(host_and_port[0], port)
-
-        self._nh.send_command("SET_PITCH", self._pitch)
-        self._nh.send_command("SET_ROLL", self._roll)
-        self._nh.send_command("SET_YAW", self._yaw)
-        self._nh.send_command("SET_ALTITUDE", self._altitude)
-        self._nh.send_command("SET_MODE", self._mode_switch)
         self._update_control_values()
 
     @QtCore.pyqtSlot()
@@ -140,16 +116,6 @@ class HexapiGUI(QMainWindow):
         self._reset_controls()
         self._altitude = -75
         self._update_control_values()
-
-    @QtCore.pyqtSlot()
-    def _land(self):
-        self._nh.send_command("LAND")
-        self._reset_controls()
-
-    @QtCore.pyqtSlot()
-    def _kill(self):
-        self._nh.send_command("KILL")
-        self._reset_controls()
 
     def _op_sign(self, x):
         if x > 0:
@@ -244,55 +210,15 @@ class HexapiGUI(QMainWindow):
             self._update_control_values()
 
     @QtCore.pyqtSlot()
-    def _switch_control_mode(self):
-        command = ""
-        if self._mode_selection.currentText() == "RC":
+    def _switch_control_mode(self, mode):
+        if mode == "RC":
             command = "START_PROG_RC"
-        elif self._mode_selection.currentText() == "GPS":
+        elif mode == "GPS":
             command = "START_PROG_GPS"
         else:
             command = "START_PROG_RC"
 
         self._nh.send_command(command)
-
-    def _add_network_control(self):
-        toolbar = QToolBar("Network")
-
-        host_text = QLabel()
-        host_text.setText("Connect to hexapi:")
-
-        self._host_edit = QLineEdit()
-        self._host_edit.setMinimumWidth(100)
-        self._host_edit.setMaximumWidth(140)
-        self._host_edit.setAlignment(QtCore.Qt.AlignRight)
-        self._host_edit.setPlaceholderText("192.169.1.2")
-
-        toolbar.addWidget(host_text)
-        toolbar.addWidget(self._host_edit)
-
-        toolbar.addAction("Set host", self._connect)
-        toolbar.addAction("Land", self._land)
-        toolbar.addAction("Kill!", self._kill)
-
-        self.addToolBar(QtCore.Qt.TopToolBarArea, toolbar)
-
-    def _add_mode_selection(self):
-        toolbar = QToolBar("Mode selection")
-
-        mode_text = QLabel()
-        mode_text.setText("Select mode:")
-
-        self._mode_selection = QComboBox()
-        self._mode_selection.setMinimumWidth(100)
-        self._mode_selection.setMaximumWidth(140)
-        self._mode_selection.addItem("RC")
-        self._mode_selection.addItem("GPS")
-
-        toolbar.addWidget(mode_text)
-        toolbar.addWidget(self._mode_selection)
-        toolbar.addAction("Select", self._switch_control_mode)
-
-        self.addToolBar(QtCore.Qt.TopToolBarArea, toolbar)
 
     def _add_logging_control(self):
 
