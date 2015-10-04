@@ -25,12 +25,14 @@ class NetworkHandler:
 
     def send_command(self, command, *args):
         if self._host:
+            logging.info("NH: Sending command: {}".format(command))
+
             data = command
             if args:
                 data += "; " + "; ".join(map(str, args))
 
             self._network_socket.sendto(data.encode(),
-                                         (self._host, self._out_port))
+                                        (self._host, self._out_port))
 
     def start(self):
         """ Starts the NetworkHandler, all callbacks needs to be registerd

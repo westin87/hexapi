@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, \
 from PyQt5 import QtCore
 
 from hexagui.network.network_handler import NetworkHandler
+from hexagui.toolbars.regulator_toolbar import RegulatorToolbar
 from hexagui.widgets.map_label import MapLabel
 from hexacommon.common.gps_data import GPSData
 
@@ -42,7 +43,6 @@ class HexapiGUI(QMainWindow):
         self._add_mode_selection()
         self._add_logging_control()
         self._add_rc_control()
-        #self.__add_gps_control()
 
         key_timer = QtCore.QTimer(self)
         key_timer.timeout.connect(self._handel_key_presses)
@@ -61,6 +61,8 @@ class HexapiGUI(QMainWindow):
         self._nh.register_callback(self._receive_mag_data, "MAG_DATA")
         self._nh.register_callback(self._receive_ang_data, "ANG_DATA")
         self._nh.start()
+
+        self.addToolBar(QtCore.Qt.RightToolBarArea, RegulatorToolbar(self._nh))
 
     def closeEvent(self, event):
         self._nh.stop()
