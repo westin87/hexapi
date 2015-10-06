@@ -58,9 +58,10 @@ class HexapiGUI(QMainWindow):
         self._nh.start()
 
         self.addToolBar(QtCore.Qt.RightToolBarArea, RegulatorToolbar(self._nh))
-        self.addToolBar(
-            QtCore.Qt.TopToolBarArea,
-            NetworkToolbar(self._nh, self._reset_controls))
+
+        network_toolbar = NetworkToolbar(self._nh)
+        network_toolbar.reset_hexacopter_parameters.connect(self._reset_controls)
+        self.addToolBar(QtCore.Qt.TopToolBarArea, network_toolbar)
 
     def closeEvent(self, event):
         self._nh.stop()
@@ -101,6 +102,7 @@ class HexapiGUI(QMainWindow):
             fo.write("{}\n".format(acc_data))
         print("Ang: {}".format(acc_data))
 
+    @QtCore.pyqtSlot()
     def _reset_controls(self):
         self._altitude = -100
         self._pitch = 0

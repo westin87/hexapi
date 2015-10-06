@@ -1,15 +1,17 @@
 import logging
 from PyQt5 import QtCore
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QToolBar, QLabel, QLineEdit
 
 
 class NetworkToolbar(QToolBar):
-    def __init__(self, network_handler, reset_callback):
+    reset_hexacopter_parameters = pyqtSignal()
+
+    def __init__(self, network_handler):
 
         super().__init__("Network")
 
         self._nh = network_handler
-        self._reset_gui = reset_callback
 
         self._connected = False
         ping_timer = QtCore.QTimer(self)
@@ -47,14 +49,14 @@ class NetworkToolbar(QToolBar):
         if self._connected:
             self._nh.send_command("PING")
 
-        self._reset_gui()
+        self.reset_hexacopter_parameters.emit()
 
     def _land(self):
         self._nh.send_command("LAND")
 
-        self._reset_gui()
+        self.reset_hexacopter_parameters.emit()
 
     def _kill(self):
         self._nh.send_command("KILL")
 
-        self._reset_gui()
+        self.reset_hexacopter_parameters.emit()
