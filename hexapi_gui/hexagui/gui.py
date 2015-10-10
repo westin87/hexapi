@@ -2,19 +2,22 @@
 
 import sys
 import logging
-import time
 import pkg_resources
 
-from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QPushButton,
-                             QGridLayout, QLineEdit, QComboBox, QMainWindow,
-                             QToolBar, QMessageBox)
+from PyQt5.QtWidgets import (
+    QApplication, QWidget, QLabel, QPushButton, QGridLayout, QMainWindow,
+    QToolBar, QMessageBox)
 from PyQt5 import QtCore
 
+from hexacommon.common.gps_data import GPSData
+
 from hexagui.network.network_handler import NetworkHandler
+from hexagui.toolbars.logging_toolbar import LoggingToolbar
+from hexagui.toolbars.mode_selection_toolbar import ModeSelectionToolbar
 from hexagui.toolbars.regulator_toolbar import RegulatorToolbar
 from hexagui.toolbars.network_toolbar import NetworkToolbar
 from hexagui.widgets.map_label import MapLabel
-from hexacommon.common.gps_data import GPSData
+from hexagui.utils import recorders
 
 
 class HexapiGUI(QMainWindow):
@@ -40,7 +43,6 @@ class HexapiGUI(QMainWindow):
 
         self.setCentralWidget(self._map)
 
-        self._add_logging_control()
         self._add_rc_control()
 
         key_timer = QtCore.QTimer(self)
@@ -51,17 +53,27 @@ class HexapiGUI(QMainWindow):
         self._pressed_keys = []
 
         self._nh = NetworkHandler()
+
         self._nh.register_callback(self._receive_gps_data, "GPS_DATA")
-        self._nh.register_callback(self._receive_acc_data, "ACC_DATA")
-        self._nh.register_callback(self._receive_mag_data, "MAG_DATA")
-        self._nh.register_callback(self._receive_ang_data, "ANG_DATA")
+
+        self._nh.register_callback(recorders.receive_acc_data, "ACC_DATA")
+        self._nh.register_callback(recorders.receive_mag_data, "MAG_DATA")
+        self._nh.register_callback(recorders.receive_ang_data, "ANG_DATA")
         self._nh.start()
 
         self.addToolBar(QtCore.Qt.RightToolBarArea, RegulatorToolbar(self._nh))
 
         network_toolbar = NetworkToolbar(self._nh)
-        network_toolbar.reset_hexacopter_parameters.connect(self._reset_controls)
+        network_toolbar.reset_hexacopter_parameters.connect(
+            self._reset_controls)
         self.addToolBar(QtCore.Qt.TopToolBarArea, network_toolbar)
+
+        mode_toolbar = ModeSelectionToolbar(self._nh)
+        mode_toolbar.switch_mode.connect(self._mode_switch)
+        self.addToolBar(QtCore.Qt.TopToolBarArea, mode_toolbar)
+
+        logging_toolbar = LoggingToolbar(self._nh)
+        self.addToolBar(QtCore.Qt.RightToolBarArea, logging_toolbar)
 
     def closeEvent(self, event):
         self._nh.stop()
@@ -80,27 +92,6 @@ class HexapiGUI(QMainWindow):
                                       gps_data.data['longitude'])
 
         self._map.add_point(self._latest_hexapi_point)
-
-    def _receive_mag_data(self, raw_mag_data):
-        mag_data = eval(raw_mag_data)
-        timestamp = time.strftime("%y%m%d%H%M%S")
-        with open("mag_data_{}.txt".format(timestamp), mode='a') as fo:
-            fo.write("{}\n".format(mag_data))
-        print("Mag: {}".format(mag_data))
-
-    def _receive_acc_data(self, raw_acc_data):
-        acc_data = eval(raw_acc_data)
-        timestamp = time.strftime("%y%m%d%H%M%S")
-        with open("acc_data_{}.txt".format(timestamp), mode='a') as fo:
-            fo.write("{}\n".format(acc_data))
-        print("Acc: {}".format(acc_data))
-
-    def _receive_ang_data(self, raw_acc_data):
-        acc_data = eval(raw_acc_data)
-        timestamp = time.strftime("%y%m%d%H%M%S")
-        with open("ang_data_{}.txt".format(timestamp), mode='a') as fo:
-            fo.write("{}\n".format(acc_data))
-        print("Ang: {}".format(acc_data))
 
     @QtCore.pyqtSlot()
     def _reset_controls(self):
@@ -221,34 +212,6 @@ class HexapiGUI(QMainWindow):
             command = "START_PROG_RC"
 
         self._nh.send_command(command)
-
-    def _add_logging_control(self):
-
-        file_tag = QLabel()
-        file_tag.setAlignment(QtCore.Qt.AlignCenter)
-        file_tag.setText("Log file tag:")
-
-        self._tag_edit = QLineEdit()
-        self._tag_edit.setMinimumWidth(100)
-        self._tag_edit.setMaximumWidth(140)
-        self._tag_edit.setAlignment(QtCore.Qt.AlignRight)
-
-        toolbar = QToolBar("Logging control")
-        toolbar.addWidget(file_tag)
-        toolbar.addWidget(self._tag_edit)
-        toolbar.addAction("Start logging", self._start_logging)
-        toolbar.addAction("Stop logging", self._stop_logging)
-
-        self.addToolBar(QtCore.Qt.RightToolBarArea, toolbar)
-
-    @QtCore.pyqtSlot()
-    def _start_logging(self):
-        file_tag = self._tag_edit.text()
-        self._nh.send_command("START_LOGGING", file_tag)
-
-    @QtCore.pyqtSlot()
-    def _stop_logging(self):
-        self._nh.send_command("STOP_LOGGING")
 
     def _add_rc_control(self):
         toolbar = QToolBar("Control display")

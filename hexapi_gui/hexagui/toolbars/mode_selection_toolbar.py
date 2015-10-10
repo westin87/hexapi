@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QToolBar, QLabel, QComboBox
 class ModeSelectionToolbar(QToolBar):
     switch_mode = pyqtSignal()
 
-    def __init__(self, switch_mode_callback):
+    def __init__(self):
         super().__init__("Mode selection")
 
         mode_text = QLabel()
