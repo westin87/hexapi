@@ -33,6 +33,7 @@ class NetworkToolbar(QToolBar):
         self.addAction("Land", self._land)
         self.addAction("Kill!", self._kill)
 
+    @QtCore.pyqtSlot()
     def _connect(self):
         logging.info("MA: Setting host")
         self._connected = True
@@ -45,17 +46,18 @@ class NetworkToolbar(QToolBar):
 
         self._nh.set_host(host_and_port[0], port)
 
+    @QtCore.pyqtSlot()
     def _send_ping(self):
         if self._connected:
             self._nh.send_command("PING")
 
-        self.reset_hexacopter_parameters.emit()
-
+    @QtCore.pyqtSlot()
     def _land(self):
         self._nh.send_command("LAND")
 
         self.reset_hexacopter_parameters.emit()
 
+    @QtCore.pyqtSlot()
     def _kill(self):
         self._nh.send_command("KILL")
 

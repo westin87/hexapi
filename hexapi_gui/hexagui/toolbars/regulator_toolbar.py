@@ -26,6 +26,7 @@ class RegulatorToolbar(QToolBar):
 
         self.addAction("Update regulators", self._update_regulators)
 
+    @QtCore.pyqtSlot()
     def _update_regulators(self):
         self._nh.send_command("SET_REG_PARAMS",
                               self._yaw_k, self._yaw_td,

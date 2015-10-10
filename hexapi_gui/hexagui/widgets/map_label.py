@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from PyQt5.QtCore import Qt
 
 from PyQt5.QtWidgets import QLabel, QPushButton
 from PyQt5 import QtGui, QtCore
@@ -8,6 +9,9 @@ from hexagui.utils import gmaps
 class MapLabel(QLabel):
     def __init__(self, parent=None, center=(0, 0), zoom=17):
         super(MapLabel, self).__init__(parent)
+
+        self.setFocusPolicy(Qt.StrongFocus)
+
         self._drawing_possible = False
         self._show_input_path = True
         self._drawn_path_map_coordinates = []

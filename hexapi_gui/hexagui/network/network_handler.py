@@ -53,7 +53,7 @@ class NetworkHandlerThread(threading.Thread):
     def __init__(self, port, callback_container):
         logging.info("NH: Thread created")
         threading.Thread.__init__(self)
-        self._stop = False
+        self._stop_thread = False
         self._network_socket = socket.socket(socket.AF_INET,
                                              socket.SOCK_DGRAM)
         self._port = port
@@ -63,7 +63,7 @@ class NetworkHandlerThread(threading.Thread):
 
     def run(self):
         logging.info("NH: Thread started")
-        while not self._stop:
+        while not self._stop_thread:
             try:
                 data, _ = \
                     self._network_socket.recvfrom(1024)
@@ -89,4 +89,4 @@ class NetworkHandlerThread(threading.Thread):
                                   .format(command))
 
     def stop(self):
-        self._stop = True
+        self._stop_thread = True
