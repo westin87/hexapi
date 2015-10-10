@@ -16,6 +16,7 @@ class Main:
     def __init__(self):
         init_time = time.strftime("%y-%m-%d %H:%M:%S")
         print "==== Initiating hexapi " + init_time + " ===="
+        gps_util.start_gps_module()
 
         self._abort = False
         self._nice_abort = True

@@ -1,7 +1,9 @@
 from __future__ import division
 import platform
+import subprocess
 import threading
 from copy import copy
+from time import sleep
 
 from hexacommon.common.gps_data import GPSData
 from hexacommon.common import singleton
@@ -51,3 +53,11 @@ class GPSUtil:
 
     def kill(self):
         self.__gps_poller.stop()
+
+
+def start_gps_module():
+    try:
+        subprocess.call(["sudo", "gpsd", "/dev/ttyAMA0"])
+        sleep(4)
+    except Exception:
+        pass
