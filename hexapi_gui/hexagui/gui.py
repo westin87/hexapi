@@ -11,6 +11,7 @@ from PyQt5 import QtCore
 from hexacommon.common.gps_data import GPSData
 
 from hexagui.network.network_handler import NetworkHandler
+from hexagui.toolbars.gps_controll_toolbar import GpsControlToolbar
 from hexagui.toolbars.logging_toolbar import LoggingToolbar
 from hexagui.toolbars.mode_selection_toolbar import ModeSelectionToolbar
 from hexagui.toolbars.rc_toolbar import RemoteControlToolbar
@@ -55,6 +56,8 @@ class HexapiGUI(QMainWindow):
 
         self._add_rc_toolbar()
 
+        self._add_gps_toolbar()
+
         self._add_regulator_setting_toolbar()
 
         self._add_logging_toolbar()
@@ -91,6 +94,10 @@ class HexapiGUI(QMainWindow):
         self.update_control_values.connect(rc_toolbar.update_control_values)
 
         self.addToolBar(QtCore.Qt.RightToolBarArea, rc_toolbar)
+
+    def _add_gps_toolbar(self):
+        gps_toolbar = GpsControlToolbar(self._nh, self._map)
+        self.addToolBar(QtCore.Qt.RightToolBarArea, gps_toolbar)
 
     def _add_mode_selection_toolbar(self):
         mode_toolbar = ModeSelectionToolbar(self._nh)

@@ -12,7 +12,8 @@ class MapLabel(QLabel):
 
         self.setFocusPolicy(Qt.StrongFocus)
 
-        self._drawing_possible = False
+        self.enable_drawing = False
+        self.single_point_mode = False
         self._show_input_path = True
         self._drawn_path_map_coordinates = []
         self._drawn_path = []
@@ -53,12 +54,6 @@ class MapLabel(QLabel):
     def get_drawn_path(self):
         return self._drawn_path_map_coordinates
 
-    def enable_drawing(self):
-        self._drawing_possible = True
-
-    def disable_drawing(self):
-        self._drawing_possible = False
-
     def show_input_path(self):
         if self._show_input_path:
             self._show_input_path = False
@@ -91,31 +86,31 @@ class MapLabel(QLabel):
         self.update()
 
     def mouseReleaseEvent(self, event):
-        if (self._drawing_possible and
-                (abs(event.x()-self._mouse_press_pos.x()) < 4) and
-                (abs(event.y()-self._mouse_press_pos.y()) < 4)):
+        if (self.enable_drawing and
+                (abs(event.x() - self._mouse_press_pos.x()) < 4) and
+                (abs(event.y() - self._mouse_press_pos.y()) < 4)):
 
-            cy = event.y()-gmaps.DEF_MAPS_SIZE/2
-            cx = event.x()-gmaps.DEF_MAPS_SIZE/2
+            cy = event.y() - gmaps.DEF_MAPS_SIZE / 2
+            cx = event.x() - gmaps.DEF_MAPS_SIZE / 2
 
-            map_pos = (self._center[0]+gmaps.pix_to_deg_lat(cy,
-                                                             self._zoom,
-                                                             self._center[0]),
-                       self._center[1]+gmaps.pix_to_deg_long(cx,
-                                                              self._zoom))
+            map_pos = (
+                self._center[0] + gmaps.pix_to_deg_lat(cy, self._zoom, self._center[0]),
+                self._center[1] + gmaps.pix_to_deg_long(cx, self._zoom))
 
-            self._drawn_path_map_coordinates.append(map_pos)
+            if self.single_point_mode:
+                self._drawn_path_map_coordinates = [map_pos]
+            else:
+                self._drawn_path_map_coordinates.append(map_pos)
+
             self._update_drawing_paths()
             self.update()
         else:
             dy = self._mouse_press_pos.y() - event.y()
             dx = self._mouse_press_pos.x() - event.x()
 
-            map_pos = (self._center[0]+gmaps.pix_to_deg_lat(dy,
-                                                             self._zoom,
-                                                             self._center[0]),
-                       self._center[1]+gmaps.pix_to_deg_long(dx,
-                                                              self._zoom))
+            map_pos = (
+                self._center[0] + gmaps.pix_to_deg_lat(dy, self._zoom, self._center[0]),
+                self._center[1] + gmaps.pix_to_deg_long(dx, self._zoom))
 
             self._center = map_pos
             self._set_map()
@@ -151,9 +146,9 @@ class MapLabel(QLabel):
         painter.setPen(QtGui.QPen())
         painter.setBrush(color)
 
-        painter.drawEllipse(point[0]-radius+self._dx_offset,
-                            point[1]-radius+self._dy_offset,
-                            2*radius, 2*radius)
+        painter.drawEllipse(point[0] - radius + self._dx_offset,
+                            point[1] - radius + self._dy_offset,
+                            2 * radius, 2 * radius)
 
         painter.setBrush(QtGui.QBrush())
 
@@ -162,9 +157,9 @@ class MapLabel(QLabel):
 
         for i, (x, y) in enumerate(path):
             if i == 0:
-                draw_path.moveTo(x+self._dx_offset, y+self._dy_offset)
+                draw_path.moveTo(x + self._dx_offset, y + self._dy_offset)
             else:
-                draw_path.lineTo(x+self._dx_offset, y+self._dy_offset)
+                draw_path.lineTo(x + self._dx_offset, y + self._dy_offset)
 
         painter.setPen(QtGui.QPen(color, 3, QtCore.Qt.SolidLine))
         painter.drawPath(draw_path)

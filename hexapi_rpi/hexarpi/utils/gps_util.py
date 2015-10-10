@@ -32,8 +32,8 @@ class GPSPoller(threading.Thread):
         while not self._stop:
             self._gpsd.next()
 
-            for atter in GPS_ATTRIBUTES:
-                self._gps_data.data[atter] = getattr(self._gpsd.fix, atter)
+            for attribute in GPS_ATTRIBUTES:
+                self._gps_data.data[attribute] = getattr(self._gpsd.fix, attribute)
 
     def stop(self):
         self._stop = True

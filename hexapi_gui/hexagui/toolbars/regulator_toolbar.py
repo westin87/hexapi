@@ -1,6 +1,8 @@
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QToolBar, QLabel, QLineEdit
 
+from hexacommon.constants import REGULATOR
+
 
 class RegulatorToolbar(QToolBar):
     def __init__(self, network_handler):
@@ -9,19 +11,19 @@ class RegulatorToolbar(QToolBar):
         self._nh = network_handler
 
         self.addWidget(QLabel("Yaw K"))
-        self._yaw_k = self._create_text_edit("0.5")
+        self._yaw_k = self._create_text_edit(str(REGULATOR.YAW_K))
         self.addWidget(self._yaw_k)
 
         self.addWidget(QLabel("Yaw Td"))
-        self._yaw_td = self._create_text_edit("0.1")
+        self._yaw_td = self._create_text_edit(str(REGULATOR.YAW_TD))
         self.addWidget(self._yaw_td)
 
         self.addWidget(QLabel("Pitch K"))
-        self._pitch_k = self._create_text_edit("12")
+        self._pitch_k = self._create_text_edit(str(REGULATOR.PITCH_K))
         self.addWidget(self._pitch_k)
 
         self.addWidget(QLabel("Pitch Td"))
-        self._pitch_td = self._create_text_edit("4")
+        self._pitch_td = self._create_text_edit(str(REGULATOR.PITCH_TD))
         self.addWidget(self._pitch_td)
 
         self.addAction("Update regulators", self._update_regulators)
@@ -29,8 +31,8 @@ class RegulatorToolbar(QToolBar):
     @QtCore.pyqtSlot()
     def _update_regulators(self):
         self._nh.send_command("SET_REG_PARAMS",
-                              self._yaw_k, self._yaw_td,
-                              self._pitch_k, self._pitch_td)
+                              self._yaw_k.text(), self._yaw_td.text(),
+                              self._pitch_k.text(), self._pitch_td.text())
 
     @staticmethod
     def _create_text_edit(placeholder_text):

@@ -10,6 +10,8 @@ from hexarpi.utils import orientation
 # Check if running on hexcopter or local, for special case setup
 from hexarpi.utils.regulators import HexacopterRegulator
 
+from hexacommon.constants import REGULATOR
+
 rpi_hosts = ['hexapi', 'raspberrypi']
 if platform.node() in rpi_hosts:
     print "RC: Running on RPI"
@@ -30,6 +32,9 @@ class RcProgram(Program):
         self._regulator = HexacopterRegulator()
         self._configure_regulator(self._regulator)
 
+        self._regulator.set_initial_position(
+            self._parse_gps_position(self._gps.get_gps_data()))
+
         self._log_file_path = ""
         self._log_data = dict()
 
@@ -41,20 +46,22 @@ class RcProgram(Program):
         print "RC: Starting RC program"
         self._stop_program = False
         while not self._stop_program:
+            gps_data = self._gps.get_gps_data()
+            self._nh.send_command("GPS_DATA", gps_data)
+
             if self._log_sensor_data:
                 self._log_sensor_data()
 
             if self._use_regulator:
-                current_position = self._get_current_position(
-                    self._gps.get_gps_data())
+                current_position = self._parse_gps_position(gps_data)
 
-                pitch, yaw = self.regulator.update(
+                pitch, yaw = self._regulator.update(
                     current_position, self._target_position)
 
                 self._mov.set_pitch(pitch)
                 self._mov.set_yaw(yaw)
 
-            time.sleep(0.05)
+            time.sleep(0.1)
         self._gps.kill()
 
     def set_pitch(self, level):
@@ -86,8 +93,8 @@ class RcProgram(Program):
         self._mov.set_altitude(-75)
 
     def start_regulator(self):
-        self._target_position = self._get_current_position(
-                    self._gps.get_gps_data())
+        self._target_position = self._parse_gps_position(
+            self._gps.get_gps_data())
 
         self._use_regulator = True
 
@@ -146,14 +153,16 @@ class RcProgram(Program):
 
     @staticmethod
     def _configure_regulator(regulator):
-        regulator.yaw_k = .5
-        regulator.yaw_td = .1
-        regulator.pitch_k = 12
-        regulator.pitch_td = 4
+        regulator.yaw_k = REGULATOR.YAW_K
+        regulator.yaw_td = REGULATOR.YAW_TD
+        regulator.pitch_k = REGULATOR.PITCH_K
+        regulator.pitch_td = REGULATOR.PITCH_TD
 
     @staticmethod
-    def _get_current_position(gps_data):
-        current_position = Point2D(gps_data.latitude, gps_data.longitude)
+    def _parse_gps_position(gps_data):
+        current_position = Point2D(
+            float(gps_data.data['latitude']),
+            float(gps_data.data['longitude']))
 
         return current_position
 

@@ -58,6 +58,8 @@ class HexacopterRegulator:
         pitch = self.pitch_regulator.update(
             target_position, self._position_estimate)
 
+        print pitch, yaw
+
         return pitch, yaw
 
     def _update_position_and_direction_estimate(self, new_position):

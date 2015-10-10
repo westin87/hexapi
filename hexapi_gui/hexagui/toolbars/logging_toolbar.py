@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QToolBar, QLabel, QLineEdit
 
 class LoggingToolbar(QToolBar):
     def __init__(self, network_handler):
-        super().__init__("Logging control")
+        super().__init__("Logging Control")
 
         self._nh = network_handler
 

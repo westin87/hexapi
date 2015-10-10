@@ -65,6 +65,10 @@ class Object2D:
         return self.__class__(x, y)
     __rtruediv__ = __truediv__
 
+    # Python 2 support:
+    __div__ = __truediv__
+    __rdiv__ = __div__
+
     def __floordiv__(self, other):
         if isinstance(other, Object2D):
             x, y = (self.x // other.x,

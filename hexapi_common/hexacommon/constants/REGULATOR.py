@@ -1,0 +1,5 @@
+PITCH_K = 320
+PITCH_TD = 80
+
+YAW_K = 0.05
+YAW_TD = 0.01
