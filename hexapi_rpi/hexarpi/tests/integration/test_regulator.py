@@ -1,3 +1,4 @@
+import time
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 
@@ -5,7 +6,7 @@ import numpy as np
 
 from hexacommon.common.coordinates import Point2D
 from hexarpi.tests.integration.hexacopter_model import HexacopterModel
-from hexarpi.utils.regulators import HexacopterRegulator
+from hexarpi.utils.regulators import HexacopterRegulatorPrototype
 
 
 class TestRegulator:
@@ -15,7 +16,7 @@ class TestRegulator:
 
         self.copter = HexacopterModel(start_position)
 
-        self.regulator = HexacopterRegulator()
+        self.regulator = HexacopterRegulatorPrototype()
         self.regulator.set_initial_position(start_position)
 
         self.copter.external_force = Point2D(0, 0.04)
@@ -28,12 +29,16 @@ class TestRegulator:
         self.target = ax.plot(self.target_position.x, self.target_position.y, "ob").pop()
 
         # Plot copter position and direction
-        self.copter_position = ax.plot(self.copter.position.x, self.copter.position.y, "or").pop()
+        self.copter_position = self.create_point(ax, self.copter.position, 'or')
         self.direction = ax.plot(self.copter.position.x, self.copter.position.y, "og").pop()
 
         # Plot estimated copter position and direction
         self.estimate_copter_position = ax.plot(self.copter.position.x, self.copter.position.y, "sr").pop()
         self.estimate_direction = ax.plot(self.copter.position.x, self.copter.position.y, "sg").pop()
+
+    @staticmethod
+    def create_point(axis, position, type="or"):
+        return axis.plot(position.x, position.y, type).pop()
 
     def iterate(self, i):
 
@@ -45,7 +50,7 @@ class TestRegulator:
 
         # Update regulator with data
         self.copter.update()
-        self.copter.pitch, self.copter.yaw = self.regulator.update(
+        self.copter.roll, self.copter.pitch, self.copter.yaw = self.regulator.update(
             self.copter.noisy_position, self.target_position)
 
         # Update copter position and direction
@@ -63,8 +68,9 @@ class TestRegulator:
             self.regulator._position_estimate.y + self.regulator._direction_estimate.y / 100)
 
     def run(self):
-        FuncAnimation(self.fig, self.iterate, np.arange(1, 600), interval=25, repeat=False)
+        ani = FuncAnimation(self.fig, self.iterate, frames=600, interval=25, repeat=False)
         plt.show()
 
 test = TestRegulator()
 test.run()
+

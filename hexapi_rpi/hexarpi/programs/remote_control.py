@@ -55,9 +55,10 @@ class RcProgram(Program):
             if self._use_regulator:
                 current_position = self._parse_gps_position(gps_data)
 
-                pitch, yaw = self._regulator.update(
+                roll, pitch, yaw = self._regulator.update(
                     current_position, self._target_position)
 
+                self._mov.set_roll(roll)
                 self._mov.set_pitch(pitch)
                 self._mov.set_yaw(yaw)
 

@@ -63,11 +63,20 @@ class Object2D:
                     self.y / other)
 
         return self.__class__(x, y)
-    __rtruediv__ = __truediv__
+
+    def __rtruediv__(self, other):
+        if isinstance(other, Object2D):
+            x, y = (other.x / self.x,
+                    other.y / self.y)
+        else:
+            x, y = (other / self.x,
+                    other / self.y)
+
+        return self.__class__(x, y)
 
     # Python 2 support:
     __div__ = __truediv__
-    __rdiv__ = __div__
+    __rdiv__ = __rtruediv__
 
     def __floordiv__(self, other):
         if isinstance(other, Object2D):
@@ -78,7 +87,16 @@ class Object2D:
                     self.y // other)
 
         return self.__class__(x, y)
-    __rfloordiv__ = __floordiv__
+
+    def __rfloordiv__(self, other):
+        if isinstance(other, Object2D):
+            x, y = (other.x // self.x,
+                    other.y // self.y)
+        else:
+            x, y = (other // self.x,
+                    other // self.y)
+
+        return self.__class__(x, y)
 
     def __iadd__(self, other):
         if isinstance(other, Object2D):
@@ -181,6 +199,10 @@ class Object2D:
         return x_equal and y_equal
 
     def __abs__(self):
+        try:
+            res = math.sqrt(self.x**2 + self.y**2)
+        except TypeError:
+            print("Incorrect type on x or y: {}, {}".format(type(self.x), type(self.y)))
         return math.sqrt(self.x**2 + self.y**2)
 
     def __len__(self):
@@ -259,7 +281,18 @@ class Object3D:
                        self.z / other)
 
         return self.__class__(z, y, x)
-    __rtruediv__ = __truediv__
+
+    def __rtruediv__(self, other):
+        if isinstance(other, Object3D):
+            x, y, z = (other.x / self.x,
+                       other.y / self.y,
+                       other.z / self.z)
+        else:
+            x, y, z = (other / self.x,
+                       other / self.y,
+                       other / self.z)
+
+        return self.__class__(z, y, x)
 
     def __floordiv__(self, other):
         if isinstance(other, Object3D):
@@ -272,7 +305,18 @@ class Object3D:
                        self.z // other)
 
         return self.__class__(z, y, x)
-    __rfloordiv__ = __floordiv__
+
+    def __rfloordiv__(self, other):
+        if isinstance(other, Object3D):
+            x, y, z = (other.x // self.x,
+                       other.y // self.y,
+                       other.z // self.z)
+        else:
+            x, y, z = (other // self.x,
+                       other // self.y,
+                       other // self.z)
+
+        return self.__class__(z, y, x)
 
     def __iadd__(self, other):
         if isinstance(other, Object3D):
