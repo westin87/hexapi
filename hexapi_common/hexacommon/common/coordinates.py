@@ -199,10 +199,6 @@ class Object2D:
         return x_equal and y_equal
 
     def __abs__(self):
-        try:
-            res = math.sqrt(self.x**2 + self.y**2)
-        except TypeError:
-            print("Incorrect type on x or y: {}, {}".format(type(self.x), type(self.y)))
         return math.sqrt(self.x**2 + self.y**2)
 
     def __len__(self):

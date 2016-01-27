@@ -6,8 +6,7 @@ import numpy as np
 
 from hexacommon.common.coordinates import Point2D
 from hexarpi.tests.integration.hexacopter_model import HexacopterModel
-from hexarpi.utils.regulators import HexacopterRegulatorPrototype
-
+from hexarpi.utils.regulators import HexacopterRegulatorPrototype, HexacopterRegulator
 
 class TestRegulator:
     def __init__(self):
@@ -16,7 +15,7 @@ class TestRegulator:
 
         self.copter = HexacopterModel(start_position)
 
-        self.regulator = HexacopterRegulatorPrototype()
+        self.regulator = HexacopterRegulator()
         self.regulator.set_initial_position(start_position)
 
         self.copter.external_force = Point2D(0, 0.04)

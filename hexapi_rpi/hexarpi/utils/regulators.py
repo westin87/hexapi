@@ -8,24 +8,22 @@ from hexarpi.utils.deriver import Deriver
 
 
 class PDRegulator:
-    def __init__(self, k, td, samples=20):
+    def __init__(self, k, td, samples=20, absolute=True):
         self.k = k
         self.td = td
 
         self._deriver = Deriver(samples)
 
+        self._absolute = absolute
+
     def update(self, R, Y):
 
         u = self.k * (R - Y) + self.td * self._deriver.derive(R - Y)
 
-        print(u)
+        if self._absolute:
+            u = abs(u)
 
-        return u
-
-        u = abs(u)
-
-
-        return np.clip(u, 0, 0.1)
+        return np.clip(u, 0, 0.2)
 
 
 class HexacopterRegulator:
@@ -118,6 +116,7 @@ class HexacopterRegulatorPrototype:
 
         self._position_estimate = Point2D(0, 0)
         self._direction_estimate = Point2D(0, 0)
+        self._travel_direction_estimate = Point2D(0, 0)
 
         self._deriver = Deriver(samples)
         self.create_new_pd_regulators()
@@ -130,6 +129,12 @@ class HexacopterRegulatorPrototype:
         self.pitch_regulator = PDRegulator(self.pitch_k, self.pitch_td)
 
     def update(self, position, target_position):
+        #  Uppskata position
+
+        #  Beräkna åt vilket håll målet ligger
+
+        #  Beräkna hur roll och pith ska sättas för att komma få denna rikning
+
         self._update_position_and_direction_estimate(position)
 
         target_direction = self._calculate_target_direction(target_position)
@@ -141,8 +146,6 @@ class HexacopterRegulatorPrototype:
 
         pitch = self.pitch_regulator.update(
             target_direction, self._direction_estimate)
-
-        print((pitch, roll))
 
         return roll, pitch, 0
 
