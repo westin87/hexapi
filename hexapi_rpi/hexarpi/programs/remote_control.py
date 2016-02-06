@@ -5,7 +5,7 @@ import platform
 from hexacommon.common.coordinates import Point2D
 
 from hexarpi.programs.program import Program
-from hexarpi.utils import orientation
+from hexarpi.utils import orientation_old
 
 # Check if running on hexcopter or local, for special case setup
 from hexarpi.utils.regulators import HexacopterRegulator
@@ -27,7 +27,7 @@ class RcProgram(Program):
 
         self._use_regulator = False
         self._gps = gps
-        self._orientation = orientation.Orientation()
+        self._orientation = orientation_old.Orientation()
 
         self._regulator = HexacopterRegulator()
         self._configure_regulator(self._regulator)
