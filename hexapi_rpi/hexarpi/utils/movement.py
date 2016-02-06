@@ -1,25 +1,26 @@
 from __future__ import division
 import platform
-from hexacommon.common import singleton
+import time
+import math
 
 # Check if on hexcopter or local, if local import stub for testing.
 rpi_hosts = ['hexapi', 'raspberrypi']
 
 if platform.node() in rpi_hosts:
     print "MV: Running on RPI"
-    import hexarpi.utils.Adafruit_PWM_Servo_Driver as ada
+    import smbus
 else:
     print "MV: Running on local"
-    import hexarpi.utils.stubs as ada
+    import hexarpi.utils.stubs as smbus
 
 
 class Movement:
     def __init__(self, freq):
         # Initialise the PWM device using the default address
 
-        self._pwm = ada.PWM(0x40, debug=False)
+        self._pwm_driver = PWMDriver()
 
-        self._pwm.setPWMFreq(freq)
+        self._pwm_driver.setPWMFreq(freq)
         self._tick_length = (1/freq)/4096  # Length in s of a tick
 
         self._pitch_channel = 1
@@ -36,7 +37,7 @@ class Movement:
         self.set_roll(0)
         self.set_mode(20)
 
-    def set_servo_pulse(self, channel, pulse):
+    def _set_servo_pulse(self, channel, pulse):
         """Sets to puls width on selected PWM channel.
 
         :param channel: channel (0-15)
@@ -44,33 +45,109 @@ class Movement:
         """
         puls_in_s = pulse/1000  # Convert to from ms to s.
         ticks = puls_in_s/self._tick_length
-        self._pwm.setPWM(channel, 0, int(ticks))
+        self._pwm_driver.setPWM(channel, 0, int(ticks))
 
     def _check_range(self, value_range, description):
         if not((-100 <= value_range) and (value_range <= 100)):
-            print("MO: Invalid speed set for " + description)
+            print "MO: Invalid speed set for " + description
 
     def set_pitch(self, speed):
         self._check_range(speed, "pitch")
         pulse = 1.5 + (speed/200)
-        self.set_servo_pulse(self._pitch_channel, pulse)
+        self._set_servo_pulse(self._pitch_channel, pulse)
 
     def set_roll(self, speed):
         self._check_range(speed, "roll")
         pulse = 1.5 + (speed/200)
-        self.set_servo_pulse(self._roll_channel, pulse)
+        self._set_servo_pulse(self._roll_channel, pulse)
 
     def set_yaw(self, speed):
         self._check_range(speed, "yaw")
         pulse = 1.5 + (speed/200)
-        self.set_servo_pulse(self._yaw_channel, pulse)
+        self._set_servo_pulse(self._yaw_channel, pulse)
 
     def set_altitude(self, level):
         self._check_range(level, "altitude")
         self.altitude_level = level
         pulse = 1.5 + (level/200)
-        self.set_servo_pulse(self._altitude_channel, pulse)
+        self._set_servo_pulse(self._altitude_channel, pulse)
 
     def set_mode(self, level):
         pulse = 1.5 + (level/200)
-        self.set_servo_pulse(self._mode_channel, pulse)
+        self._set_servo_pulse(self._mode_channel, pulse)
+
+PWM_ADDRESS = 0x40
+
+class PWMDriver:
+    # Registers/etc.
+    _MODE1              = 0x00
+    _MODE2              = 0x01
+    _PRESCALE           = 0xFE
+    _LED0_ON_L          = 0x06
+    _LED0_ON_H          = 0x07
+    _LED0_OFF_L         = 0x08
+    _LED0_OFF_H         = 0x09
+    _ALL_LED_ON_L       = 0xFA
+    _ALL_LED_ON_H       = 0xFB
+    _ALL_LED_OFF_L      = 0xFC
+    _ALL_LED_OFF_H      = 0xFD
+
+    # Bits
+    _SLEEP              = 0x10
+    _ALLCALL            = 0x01
+    _OUTDRV             = 0x04
+
+    def __init__(self):
+        self._i2c_buss = smbus.SMBus(1)
+        self._address = PWM_ADDRESS
+
+        self._configure_pwm_driver()
+
+    def _configure_pwm_driver(self):
+        self.setAllPWM(0, 0)
+        self._write_byte(self._MODE2, self._OUTDRV)
+        self._write_byte(self._MODE1, self._ALLCALL)
+        time.sleep(0.005)  # wait for oscillator
+        mode1 = self._read_byte(self._MODE1)
+        mode1 &= ~self._SLEEP  # wake up (reset sleep)
+        self._write_byte(self._MODE1, mode1)
+        time.sleep(0.005)  # wait for oscillator
+
+    def setPWMFreq(self, freq):
+        "Sets the PWM frequency"
+        prescale_value = 25000000.0    # 25MHz
+        prescale_value /= 4096.0       # 12-bit
+        prescale_value /= float(freq)
+        prescale_value -= 1.0
+
+        print "Setting PWM frequency to %d Hz" % freq
+
+        prescale = math.floor(prescale_value + 0.5)
+
+        old_mode = self._read_byte(self._MODE1)
+        new_mode = (old_mode & 0x7F) | 0x10  # sleep
+        self._write_byte(self._MODE1, new_mode)  # go to sleep
+        self._write_byte(self._PRESCALE, int(math.floor(prescale)))
+        self._write_byte(self._MODE1, old_mode)
+        time.sleep(0.005)
+        self._write_byte(self._MODE1, old_mode | 0x80)
+
+    def setPWM(self, channel, on, off):
+        "Sets a single PWM channel"
+        self._write_byte(self._LED0_ON_L + 4 * channel, on & 0xFF)
+        self._write_byte(self._LED0_ON_H + 4 * channel, on >> 8)
+        self._write_byte(self._LED0_OFF_L + 4 * channel, off & 0xFF)
+        self._write_byte(self._LED0_OFF_H + 4 * channel, off >> 8)
+
+    def setAllPWM(self, on, off):
+        "Sets a all PWM channels"
+        self._write_byte(self._ALL_LED_ON_L, on & 0xFF)
+        self._write_byte(self._ALL_LED_ON_H, on >> 8)
+        self._write_byte(self._ALL_LED_OFF_L, off & 0xFF)
+        self._write_byte(self._ALL_LED_OFF_H, off >> 8)
+
+    def _write_byte(self, register, value):
+        self._i2c_bus.write_byte_data(self.address, register, value)
+
+    def _read_byte(self, register):
+        return self._i2c_bus.read_byte_data(self.address, register)
