@@ -18,6 +18,8 @@ class Orientation:
     BNO055_WHO_AM_I = 0b10100000  # Device id
 
     # Control register addresses
+    UNIT_SEL = 0x3B
+    OPR_MODE = 0x3D
 
     #Registers holding twos-complemented MSB and LSB of euler angle readings
     EUL_DATA_X_LSB = 0x1A
@@ -46,24 +48,21 @@ class Orientation:
 
     def _configure(self):
         print "OR: Configuring BNO055"
-        self._write_byte(self.BNO055_CTRL_1, 0b01010111)  # enable accelerometer, 50 hz sampling
-        self._write_byte(self.BNO055_CTRL_2, 0b00000000)  # set +/- 2g full scale
-        self._write_byte(self.BNO055_CTRL_5, 0b01100100)  # high resolution mode, thermometer off, 6.25hz ODR
-        self._write_byte(self.BNO055_CTRL_6, 0b00100000)  # set +/- 4 gauss full scale
-        self._write_byte(self.BNO055_CTRL_7, 0b00000000)  # get magnetometer out of low power mode
+        self._write_byte(self.UNIT_SEL, 0b00000100)  # Radians
+        self._write_byte(self.OPR_MODE, 0b00001100)  # NDOF
 
-    def get_acceleration(self):
-        acceleration_x = _combine_two_comp(
-            self._read_byte(self.BNO055_ACC_X_MSB),
-            self._read_byte(self.BNO055_ACC_X_LSB))
-        acceleration_y = _combine_two_comp(
-            self._read_byte(self.BNO055_ACC_Y_MSB),
-            self._read_byte(self.BNO055_ACC_Y_LSB))
-        acceleration_z = _combine_two_comp(
-            self._read_byte(self.BNO055_ACC_Z_MSB),
-            self._read_byte(self.BNO055_ACC_Z_LSB))
+    def get_euler_angel(self):
+        euler_angel_x = _combine_two_comp(
+            self._read_byte(self.EUL_DATA_X_MSB),
+            self._read_byte(self.EUL_DATA_X_LSB))
+        euler_angel_y = _combine_two_comp(
+            self._read_byte(self.EUL_DATA_Y_MSB),
+            self._read_byte(self.EUL_DATA_Y_LSB))
+        euler_angel_z = _combine_two_comp(
+            self._read_byte(self.EUL_DATA_Z_MSB),
+            self._read_byte(self.EUL_DATA_Z_LSB))
 
-        return acceleration_x, acceleration_y, acceleration_z
+        return euler_angel_x, euler_angel_y, euler_angel_z
 
 
 def _combine_two_comp(msb, lsb):
