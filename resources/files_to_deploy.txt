@@ -8,12 +8,12 @@ hexapi_rpi/hexarpi/utils/gps_util.py
 hexapi_rpi/hexarpi/utils/stubs.py
 hexapi_rpi/hexarpi/utils/orientation.py
 hexapi_rpi/hexarpi/utils/__init__.py
-hexapi_rpi/hexarpi/utils/Adafruit_I2C.py
 hexapi_rpi/hexarpi/utils/movement.py
-hexapi_rpi/hexarpi/utils/Adafruit_PWM_Servo_Driver.py
 hexapi_rpi/hexarpi/__init__.py
 hexapi_rpi/hexarpi/network/network_handler.py
 hexapi_rpi/hexarpi/network/__init__.py
+
+hexapi_rpi/hexarpi/tests/integration/test_orientation.py
 
 hexapi_common/setup.py
 hexapi_common/hexacommon/common/singleton.py

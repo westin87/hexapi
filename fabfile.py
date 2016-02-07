@@ -5,7 +5,7 @@ import os
 from fabric.api import run, put, env, get, local, cd
 
 env.user = "pi"
-env.hosts = ["192.169.1.2"]
+env.hosts = ["192.168.1.12"]
 
 pi_home = "/home/pi/code/"
 

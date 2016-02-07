@@ -3,6 +3,8 @@ hexapi_rpi/hexarpi
 hexapi_rpi/hexarpi/network
 hexapi_rpi/hexarpi/programs
 hexapi_rpi/hexarpi/utils
+hexapi_rpi/hexarpi/tests
+hexapi_rpi/hexarpi/tests/integration
 hexapi_common/
 hexapi_common/hexacommon/
 hexapi_common/hexacommon/common/
