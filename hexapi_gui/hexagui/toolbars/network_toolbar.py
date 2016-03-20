@@ -42,7 +42,7 @@ class NetworkToolbar(QToolBar):
         if len(host_and_port) == 2:
             port = int(host_and_port[1])
         else:
-            port = 4092
+            port = 4094
 
         self._nh.set_host(host_and_port[0], port)
 

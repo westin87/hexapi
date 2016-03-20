@@ -1,3 +1,5 @@
+import logging
+
 import time
 
 from hexarpi.programs.program import Program
@@ -8,7 +10,7 @@ class GpsProgram(Program):
         super(GpsProgram, self).__init__(movement, network_handler)
 
     def run(self):
-        print "GP: Starting GPS program"
+        logging.info("GP: Starting GPS program")
         self._stop_program = False
         while not self._stop_program:
             # if not at_gps_pos:

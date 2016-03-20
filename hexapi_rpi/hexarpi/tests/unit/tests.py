@@ -1,6 +1,7 @@
-from mock import patch, MagicMock
-from hexarpi.utils import movement
 from hexarpi.network import network_handler
+from mock import patch, MagicMock
+
+from hexarpi.utils import movement
 
 
 class TestSetMovements:
@@ -17,21 +18,21 @@ class TestSetMovements:
     def test_set_pitch_0(self):
         self.move.set_pitch(0)
 
-        self.mock_pwm.setPWM.assert_called_with(1, 0, 307)
+        self.mock_pwm.set_pwm.assert_called_with(1, 0, 307)
 
         self.teardown()
 
     def test_set_pitch_100(self):
         self.move.set_pitch(100)
 
-        self.mock_pwm.setPWM.assert_called_with(1, 0, 409)
+        self.mock_pwm.set_pwm.assert_called_with(1, 0, 409)
 
         self.teardown()
 
     def test_set_pitch_minus_100(self):
         self.move.set_pitch(-100)
 
-        self.mock_pwm.setPWM.assert_called_with(1, 0, 204)
+        self.mock_pwm.set_pwm.assert_called_with(1, 0, 204)
 
 
 class TestNetworkHandler:

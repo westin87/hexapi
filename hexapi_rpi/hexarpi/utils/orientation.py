@@ -1,19 +1,18 @@
-from __future__ import division
-
-from time import sleep
+import logging
 
 import numpy as np
 import platform
+from time import sleep
 
-# Check if on hexcopter or local, if local import stub for testing.
-rpi_hosts = ['hexapi', 'raspberrypi']
+# Check if on hexacopter or local, if local import stub for testing.
+real_hosts = ['hexapi', 'raspberrypi', 'chip']
 
-if platform.node() in rpi_hosts:
-    print "OR: Running on RPI"
+if platform.node() in real_hosts:
+    logging.info("OR: Running on hexacopter host")
     from smbus import SMBus
 else:
-    print "OR: Running on local"
-    from hexarpi.utils.stubs import SMBus
+    logging.info("OR: Running on localhost")
+    from hexarpi.tests.utils.stubs import SMBus
 
 
 class Orientation:
@@ -44,9 +43,9 @@ class Orientation:
         self.address = self.BNO055_ADDRESS
 
         if self._read_byte(0x00) == self.BNO055_WHO_AM_I:
-            print "OR: BNO055 detected successfully."
+            logging.info("OR: BNO055 detected successfully.")
         else:
-            print "OR: No BNO055 detected"
+            logging.info("OR: No BNO055 detected")
 
         self._configure()
 
@@ -54,10 +53,11 @@ class Orientation:
         self._i2c_bus.write_byte_data(self.address, register, value)
 
     def _read_byte(self, register):
-        return self._i2c_bus.read_byte_data(self.address, register)
+        data = np.uint8(self._i2c_bus.read_byte_data(self.address, register))
+        return data
 
     def _configure(self):
-        print "OR: Configuring BNO055"
+        logging.info("OR: Configuring BNO055")
 
         self._write_byte(self.OPR_MODE, 0b00000000)  # Configuration mode
         self._write_byte(self.SYS_TRIGGER, 0b00100000)  # Reset

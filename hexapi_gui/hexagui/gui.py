@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import sys
 import logging
 from PyQt5.QtCore import pyqtSignal
@@ -9,14 +7,15 @@ from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5 import QtCore
 
 from hexacommon.common.gps_data import GPSData
+from hexacommon.common.network_handler import NetworkHandler
 
-from hexagui.network.network_handler import NetworkHandler
 from hexagui.toolbars.gps_controll_toolbar import GpsControlToolbar
 from hexagui.toolbars.logging_toolbar import LoggingToolbar
 from hexagui.toolbars.mode_selection_toolbar import ModeSelectionToolbar
 from hexagui.toolbars.rc_toolbar import RemoteControlToolbar
 from hexagui.toolbars.regulator_toolbar import RegulatorToolbar
 from hexagui.toolbars.network_toolbar import NetworkToolbar
+
 from hexagui.widgets.map_label import MapLabel
 from hexagui.utils import recorders
 
@@ -111,10 +110,10 @@ class HexapiGUI(QMainWindow):
         self.addToolBar(QtCore.Qt.TopToolBarArea, network_toolbar)
 
     def _set_application_style(self):
-        self.setMinimumSize(1024, 640)
+        self.setMinimumSize(640, 640)
 
-        style_file_path = pkg_resources.resource_filename(__name__,
-                                                          'resources/app_style.qss')
+        style_file_path = pkg_resources.resource_filename(
+            __name__,  'resources/app_style.qss')
         with open(style_file_path, 'r') as style_file_object:
             self.setStyleSheet(style_file_object.read())
 

@@ -33,11 +33,11 @@ def get_map(center, zoom, size=(DEF_MAPS_SIZE, DEF_MAPS_SIZE), scale=1,
         url += path_base[:-1]
 
     try:
-        urllib.request.urlretrieve(url, "tmp_data.bin")
+        urllib.request.urlretrieve(url, "/tmp/tmp_data.bin")
     except:
         return QtGui.QPixmap("error.bin")
 
-    return QtGui.QPixmap("tmp_data.bin")
+    return QtGui.QPixmap("/tmp/tmp_data.bin")
 
 
 def pix_to_deg_lat(pix, zoom, current_lat):

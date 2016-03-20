@@ -1,3 +1,5 @@
+import logging
+
 import random
 import time
 import os
@@ -6,31 +8,7 @@ import re
 from itertools import cycle
 
 
-class PWM():
-    def __init__(self, data, debug):
-        self.freq = -1
-        self.channel = -1
-        self.startTick = -1
-        self.stopTick = -1
-
-        pass
-
-    def setPWMFreq(self, freq):
-        print "ST: Frequency set to: " + str(freq)
-        self.freq = freq
-
-    def setPWM(self, channel, startTick, stopTick):
-        print "ST: PWM set for channel: " + str(channel) +\
-            " with start: " + str(startTick) + " and stop: " +\
-            str(stopTick)
-
-        self.channel = channel
-        self.startTick = startTick
-        self.stopTick = stopTick
-
-
-class gps():
-
+class gps:
     def __init__(self, mode):
         self.fix = Fix()
         with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -59,8 +37,8 @@ class gps():
         self.fix.epv = random.random()
         self.fix.epx = random.random()
         self.fix.epy = random.random()
-        self.fix.latitude = self.fake_lat_iter.next()
-        self.fix.longitude = self.fake_long_iter.next()
+        self.fix.latitude = next(self.fake_lat_iter)
+        self.fix.longitude = next(self.fake_long_iter)
         self.fix.mode = random.random()
         self.fix.speed = random.random()
         self.fix.time = random.random()
@@ -73,21 +51,22 @@ class gps():
 WATCH_ENABLE = 1
 
 
-class Fix():
-    latitude = 0
-    longitude = 0
-    altitude = 0
-    speed = 0
-    altitude = 0
+class Fix:
+    def __init__(self):
+        self.latitude = 0
+        self.longitude = 0
+        self.altitude = 0
+        self.speed = 0
+        self.altitude = 0
 
 
-class SMBus():
-    def __init__(self, number):
+class SMBus:
+    def __init__(self, interface):
         pass
 
     def read_byte_data(self, address, register):
         return random.randrange(0, 256)
 
     def write_byte_data(self, address, register, value):
-        print "SM: Writing byte {} to register {} on address {}".\
-            format(value, register, address)
+        logging.info("SM: Writing byte {} to register {} on address {}"
+              .format(value, register, address))

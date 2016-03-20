@@ -1,3 +1,5 @@
+import logging
+
 import time
 import pickle
 import os
@@ -5,20 +7,10 @@ import platform
 from hexacommon.common.coordinates import Point2D
 
 from hexarpi.programs.program import Program
-from hexarpi.utils import orientation_old
-
-# Check if running on hexcopter or local, for special case setup
+from hexarpi.utils import orientation
 from hexarpi.utils.regulators import HexacopterRegulator
 
 from hexacommon.constants import REGULATOR
-
-rpi_hosts = ['hexapi', 'raspberrypi']
-if platform.node() in rpi_hosts:
-    print "RC: Running on RPI"
-    user = "~pi"
-else:
-    print "RC: Running on local"
-    user = "~"
 
 
 class RcProgram(Program):
@@ -27,7 +19,7 @@ class RcProgram(Program):
 
         self._use_regulator = False
         self._gps = gps
-        self._orientation = orientation_old.Orientation()
+        self._orientation = orientation.Orientation()
 
         self._regulator = HexacopterRegulator()
         self._configure_regulator(self._regulator)
@@ -43,7 +35,7 @@ class RcProgram(Program):
         self._target_position = Point2D(0, 0)
 
     def run(self):
-        print "RC: Starting RC program"
+        logging.info("RC: Starting RC program")
         self._stop_program = False
         while not self._stop_program:
             gps_data = self._gps.get_gps_data()
@@ -82,7 +74,7 @@ class RcProgram(Program):
         self._mov.set_mode(mode_trans[mode])
 
     def start_motors(self):
-        print "Starting engines"
+        logging.info("Starting engines")
         self._mov.set_pitch(-100)
         self._mov.set_roll(-100)
         self._mov.set_yaw(-100)
@@ -131,7 +123,7 @@ class RcProgram(Program):
         self._log_data['acc'] = []
         self._log_data['ang'] = []
 
-        print "RC: Starting logging to {}".format(self._log_file_path)
+        logging.info("RC: Starting logging to {}".format(self._log_file_path))
 
     def stop_logging(self):
         self._log_sensor_data = False
@@ -140,7 +132,7 @@ class RcProgram(Program):
         with open(self._log_file_path, 'w') as file_object:
             pickle.dump(self._log_data, file_object)
 
-        print "RC: Done with logging"
+        logging.info("RC: Done logging")
 
     def _log_sensor_data(self):
         self._log_data['gps'].append(
@@ -185,10 +177,9 @@ class RcProgram(Program):
 
 
 def _prepare_logging_path(filename):
-    user_home = os.path.expanduser(user)
+    user_home = os.path.expanduser("~")
     log_dir = os.path.join(user_home, "hexapi_logs")
 
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
+    os.makedirs(log_dir, exist_ok=True)
 
     return os.path.join(log_dir, filename)
