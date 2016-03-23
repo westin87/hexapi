@@ -39,7 +39,7 @@ class Orientation:
     EUL_DATA_Z_MSB = 0x1F
 
     def __init__(self):
-        self._i2c_bus = SMBus(1)
+        self._i2c_bus = SMBus(2)
         self.address = self.BNO055_ADDRESS
 
         if self._read_byte(0x00) == self.BNO055_WHO_AM_I:
@@ -100,3 +100,33 @@ def _combine_bytes(msb, lsb):
     value = (msb << 8) | lsb
 
     return np.int16(value) / 900
+
+def radians_to_compass(radians):
+    if radians < 1 * np.pi / 6:
+        return 'S'
+    elif radians < 2 * np.pi / 6:
+        return 'SW'
+    elif radians < 4 * np.pi / 6:
+        return 'W'
+    elif radians < 5 * np.pi / 6:
+        return 'NW'
+    elif radians < 7 * np.pi / 6:
+        return 'N'
+    elif radians < 8 * np.pi / 6:
+        return 'NE'
+    elif radians < 10 * np.pi / 6:
+        return 'E'
+    elif radians < 11 * np.pi / 6:
+        return 'SE'
+    elif radians <= 12 * np.pi / 6:
+        return 'S'
+
+def main():
+    o = Orientation()
+    for _ in range(1000):
+        sleep(0.1)
+        x, y, z = o.get_euler_angel()
+        print(radians_to_compass(x))
+
+if __name__=='__main__':
+    main()
