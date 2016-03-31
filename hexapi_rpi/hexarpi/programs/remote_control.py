@@ -8,7 +8,7 @@ from hexacommon.common.coordinates import Point2D
 
 from hexarpi.programs.program import Program
 from hexarpi.utils import orientation
-from hexarpi.utils.regulators import HexacopterRegulator
+from hexarpi.utils.regulator import HexacopterRegulator
 
 from hexacommon.constants import REGULATOR
 
