@@ -16,3 +16,22 @@ class Deriver:
             derivative = 0
 
         return derivative
+
+
+class PDRegulator:
+    def __init__(self, k, td, samples=20, absolute=True):
+        self.k = k
+        self.td = td
+
+        self._deriver = Deriver(samples)
+
+        self._absolute = absolute
+
+    def update(self, R, Y):
+
+        u = self.k * (R - Y) + self.td * self._deriver.derive(R - Y)
+
+        if self._absolute:
+            u = abs(u)
+
+        return np.clip(u, 0, 0.2)

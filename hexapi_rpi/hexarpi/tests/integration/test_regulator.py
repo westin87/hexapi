@@ -6,7 +6,7 @@ import numpy as np
 
 from hexacommon.common.coordinates import Point2D
 from hexarpi.tests.integration.hexacopter_model import HexacopterModel
-from hexarpi.utils.regulator import HexacopterRegulatorPrototype, HexacopterRegulator
+from hexarpi.utils.regulator import HexacopterRegulator
 
 
 class TestRegulator:
