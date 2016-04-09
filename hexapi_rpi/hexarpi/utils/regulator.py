@@ -3,7 +3,7 @@ import sys
 
 import numpy as np
 
-from hexacommon.common.coordinates import Point2D
+from hexacommon.common.coordinates import Vector2D
 from hexarpi.utils.deriver import Deriver
 
 
@@ -37,8 +37,8 @@ class HexacopterRegulator:
         self.position_alpha = position_alpha
         self.direction_alpha = direction_alpha
 
-        self._position_estimate = Point2D(0, 0)
-        self._direction_estimate = Point2D(0, 0)
+        self._position_estimate = Vector2D(0, 0)
+        self._direction_estimate = Vector2D(0, 0)
 
         self._deriver = Deriver(samples)
         self.create_new_pd_regulators()
@@ -90,13 +90,13 @@ class HexacopterRegulator:
             return target_direction
 
     def _calculate_angle_to_target(self, target_direction):
-        return math.acos(Point2D.dot(self._direction_estimate, target_direction))
+        return math.acos(Vector2D.dot(self._direction_estimate, target_direction))
 
     def _calculate_turning_direction(self, target_direction):
-        orthogonal_target_direction = Point2D(-target_direction.y,
+        orthogonal_target_direction = Vector2D(-target_direction.y,
                                               target_direction.x)
 
-        projection = Point2D.dot(
+        projection = Vector2D.dot(
             self._direction_estimate,
             orthogonal_target_direction / abs(orthogonal_target_direction))
 

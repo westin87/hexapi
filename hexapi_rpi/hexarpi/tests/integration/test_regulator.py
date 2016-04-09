@@ -4,22 +4,22 @@ from matplotlib.animation import FuncAnimation
 
 import numpy as np
 
-from hexacommon.common.coordinates import Point2D
+from hexacommon.common.coordinates import Vector2D
 from hexarpi.tests.integration.hexacopter_model import HexacopterModel
-from hexarpi.utils.regulator import HexacopterRegulator
+from hexarpi.utils.regulator_prototype import HexacopterRegulator
 
 
 class TestRegulator:
     def __init__(self):
-        start_position = Point2D(0.5, 0.5)
-        self.target_position = Point2D(0.8, 0.3)
+        start_position = Vector2D(0.5, 0.5)
+        self.target_position = Vector2D(0.8, 0.3)
 
         self.copter = HexacopterModel(start_position)
 
         self.regulator = HexacopterRegulator()
         self.regulator.set_initial_position(start_position)
 
-        self.copter.external_force = Point2D(0, 0.04)
+        self.copter.external_force = Vector2D(0, 0.04)
 
         self.fig, ax = plt.subplots()
         ax.set_ylim([0, 1])
@@ -43,15 +43,15 @@ class TestRegulator:
     def iterate(self, i):
 
         # Change target after 300 iterations
-        if i == 300:
-            self.target_position = Point2D(0.2, 0.6)
-            self.target.set_xdata(self.target_position.x)
-            self.target.set_ydata(self.target_position.y)
+        #if i == 300:
+        #    self.target_position = Vector2D(0.2, 0.6)
+        #    self.target.set_xdata(self.target_position.x)
+        #    self.target.set_ydata(self.target_position.y)
 
         # Update regulator with data
         self.copter.update()
         self.copter.roll, self.copter.pitch, self.copter.yaw = self.regulator.update(
-            self.copter.noisy_position, self.target_position)
+            self.copter.position, self.copter.direction, self.target_position)
 
         # Update copter position and direction
         self.copter_position.set_xdata(self.copter.position.x)
