@@ -218,7 +218,7 @@ class Object2D:
 
 class Vector2D(Object2D):
     def __str__(self):
-        return "Point at x: {}, y: {}".format(self.x, self.y)
+        return "x: {:.02F}, y: {:.02F}".format(self.x, self.y)
 
     def __repr__(self):
         return "Point2D(x={}, y={})".format(self.x, self.y)

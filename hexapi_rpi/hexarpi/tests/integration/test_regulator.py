@@ -43,10 +43,10 @@ class TestRegulator:
     def iterate(self, i):
 
         # Change target after 300 iterations
-        #if i == 300:
-        #    self.target_position = Vector2D(0.2, 0.6)
-        #    self.target.set_xdata(self.target_position.x)
-        #    self.target.set_ydata(self.target_position.y)
+        if i == 600:
+            self.target_position = Vector2D(0.2, 0.6)
+            self.target.set_xdata(self.target_position.x)
+            self.target.set_ydata(self.target_position.y)
 
         # Update regulator with data
         self.copter.update()
@@ -68,7 +68,7 @@ class TestRegulator:
             self.regulator._position_estimate.y + self.regulator._direction_estimate.y / 100)
 
     def run(self):
-        ani = FuncAnimation(self.fig, self.iterate, frames=600, interval=25, repeat=False)
+        ani = FuncAnimation(self.fig, self.iterate, frames=1200, interval=25, repeat=False)
         plt.show()
 
 test = TestRegulator()
