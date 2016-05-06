@@ -1,76 +1,114 @@
-import time
-from matplotlib import pyplot as plt
-from matplotlib.animation import FuncAnimation
+import sys
 
-import numpy as np
+from PyQt5 import QtGui
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout
 
 from hexacommon.common.coordinates import Vector2D
 from hexarpi.tests.integration.hexacopter_model import HexacopterModel
 from hexarpi.utils.regulator_prototype import HexacopterRegulator
 
 
-class TestRegulator:
+class HexacopterSimulator(QWidget):
     def __init__(self):
-        start_position = Vector2D(0.5, 0.5)
-        self.target_position = Vector2D(0.8, 0.3)
+        super().__init__()
 
-        self.copter = HexacopterModel(start_position)
+        start_position = Vector2D(0.5, 0.5)
 
         self.regulator = HexacopterRegulator()
         self.regulator.set_initial_position(start_position)
 
-        self.copter.external_force = Vector2D(0, 0.04)
+        self.hexacopter = HexacopterModel(start_position)
+        self.hexacopter.external_force = Vector2D(0, 0.04)
 
-        self.fig, ax = plt.subplots()
-        ax.set_ylim([0, 1])
-        ax.set_xlim([0, 1])
+        self.target = Target(Vector2D(0.8, 0.3))
 
-        # Plot target position
-        self.target = ax.plot(self.target_position.x, self.target_position.y, "ob").pop()
+        self.map = Map(self.hexacopter, self.target)
 
-        # Plot copter position and direction
-        self.copter_position = self.create_point(ax, self.copter.position, 'or')
-        self.direction = ax.plot(self.copter.position.x, self.copter.position.y, "og").pop()
+        layout = QVBoxLayout()
+        layout.addWidget(self.map)
+        self.setLayout(layout)
 
-        # Plot estimated copter position and direction
-        self.estimate_copter_position = ax.plot(self.copter.position.x, self.copter.position.y, "sr").pop()
-        self.estimate_direction = ax.plot(self.copter.position.x, self.copter.position.y, "sg").pop()
+        self.timer = QTimer()
+        self.timer.start(25)
 
-    @staticmethod
-    def create_point(axis, position, type="or"):
-        return axis.plot(position.x, position.y, type).pop()
-
-    def iterate(self, i):
-
-        # Change target after 300 iterations
-        if i == 600:
-            self.target_position = Vector2D(0.2, 0.6)
-            self.target.set_xdata(self.target_position.x)
-            self.target.set_ydata(self.target_position.y)
-
-        # Update regulator with data
-        self.copter.update()
-        self.copter.roll, self.copter.pitch, self.copter.yaw = self.regulator.update(
-            self.copter.position, self.copter.direction, self.target_position)
-
-        # Update copter position and direction
-        self.copter_position.set_xdata(self.copter.position.x)
-        self.copter_position.set_ydata(self.copter.position.y)
-        self.direction.set_xdata(self.copter.position.x + self.copter.direction_vector.x / 100)
-        self.direction.set_ydata(self.copter.position.y + self.copter.direction_vector.y / 100)
-
-        # Update estimated copter position and direction
-        self.estimate_copter_position.set_xdata(self.regulator._position_estimate.x)
-        self.estimate_copter_position.set_ydata(self.regulator._position_estimate.y)
-        self.estimate_direction.set_xdata(
-            self.regulator._position_estimate.x + self.regulator._direction_estimate.x / 100)
-        self.estimate_direction.set_ydata(
-            self.regulator._position_estimate.y + self.regulator._direction_estimate.y / 100)
+        self.timer.timeout.connect(self.run)
 
     def run(self):
-        ani = FuncAnimation(self.fig, self.iterate, frames=1200, interval=25, repeat=False)
-        plt.show()
+        # Update regulator with data
+        self.hexacopter.update()
+        self.hexacopter.roll, self.hexacopter.pitch, self.hexacopter.yaw = self.regulator.update(
+            self.hexacopter.position, self.hexacopter.direction, self.target.position)
 
-test = TestRegulator()
-test.run()
+        self.update()
 
+
+class Map(QLabel):
+    def __init__(self, hexacopter_model, target):
+        super().__init__()
+        self.setMinimumSize(480, 480)
+
+        self._hexacopter = HexacopterView(hexacopter_model)
+        self._target = TargetView(target)
+
+    def paintEvent(self, event):
+        painter = QtGui.QPainter(self)
+
+        view_size = Vector2D(self.geometry().width(), self.geometry().height())
+
+        self._draw_background(painter, view_size)
+
+        self._hexacopter.draw(painter, view_size)
+        self._target.draw(painter, view_size)
+
+    @staticmethod
+    def _draw_background(painter, view_size):
+        painter.setBrush(Qt.white)
+        painter.setPen(Qt.white)
+        painter.drawRect(0, 0, view_size.x, view_size.y)
+
+
+class HexacopterView:
+    def __init__(self, hexacopter_model):
+        self.hexacopter_model = hexacopter_model
+
+    def draw(self, painter, view_size):
+        radius = 5
+
+        position_in_view = self.hexacopter_model.position * view_size
+
+        painter.setPen(Qt.black)
+        painter.setBrush(Qt.red)
+
+        painter.drawEllipse(position_in_view.x - radius,
+                            position_in_view.y - radius,
+                            2 * radius, 2 * radius)
+
+
+class Target:
+    def __init__(self, position):
+        self.position = position
+
+
+class TargetView:
+    def __init__(self, target):
+        self.target = target
+
+    def draw(self, painter, view_size):
+        radius = 5
+
+        position_in_view = self.target.position * view_size
+
+        painter.setPen(Qt.black)
+        painter.setBrush(Qt.blue)
+
+        painter.drawEllipse(position_in_view.x - radius,
+                            position_in_view.y - radius,
+                            2 * radius, 2 * radius)
+
+
+if __name__ == '__main__':
+    app = QApplication([])
+    win = HexacopterSimulator()
+    win.show()
+    sys.exit(app.exec_())
