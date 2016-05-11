@@ -1,5 +1,6 @@
 import sys
 
+import numpy as np
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout
@@ -10,36 +11,58 @@ from hexarpi.utils.regulator_prototype import HexacopterRegulator
 
 
 class HexacopterSimulator(QWidget):
+    TICK_INTERVAL = 25
+    TARGET_INTERVAL = 8 * TICK_INTERVAL
+
     def __init__(self):
         super().__init__()
 
         start_position = Vector2D(0.5, 0.5)
 
-        self.regulator = HexacopterRegulator()
-        self.regulator.set_initial_position(start_position)
+        self._regulator = HexacopterRegulator()
+        self._regulator.set_initial_position(start_position)
 
-        self.hexacopter = HexacopterModel(start_position)
-        self.hexacopter.external_force = Vector2D(0, 0.04)
+        self._hexacopter = HexacopterModel(start_position)
+        self._hexacopter.direction = 0
+        self._hexacopter.yaw = 0.1
+        self._hexacopter.external_force = Vector2D(0, 0.03)
 
-        self.target = Target(Vector2D(0.8, 0.3))
+        self._route = iter(
+            [Vector2D(0.3, 0.3), Vector2D(0.8, 0.3), Vector2D(0.3, 0.3), Vector2D(0.8, 0.8),
+             Vector2D(0.2, 0.7), Vector2D(0.5, 0.3), Vector2D(0.1, 0.2), Vector2D(0.5, 0.5)])
 
-        self.map = Map(self.hexacopter, self.target)
+        self._target = Target(Vector2D(0.2, 0.5))
+
+        self._map = Map(self._hexacopter, self._target)
 
         layout = QVBoxLayout()
-        layout.addWidget(self.map)
+        layout.addWidget(self._map)
         self.setLayout(layout)
 
-        self.timer = QTimer()
-        self.timer.start(25)
+        self._tick_timer = QTimer()
+        self._tick_timer.start(self.TICK_INTERVAL)
 
-        self.timer.timeout.connect(self.run)
+        self._tick_timer.timeout.connect(self._run)
 
-    def run(self):
+        self._count = 0
+
+    def _update_target(self):
+        self._count += 1
+        if np.mod(self._count, self.TARGET_INTERVAL) == 0:
+            try:
+                self._target.position = next(self._route)
+            except StopIteration:
+                pass
+
+            self._count = 0
+
+    def _run(self):
         # Update regulator with data
-        self.hexacopter.update()
-        self.hexacopter.roll, self.hexacopter.pitch, self.hexacopter.yaw = self.regulator.update(
-            self.hexacopter.position, self.hexacopter.direction, self.target.position)
+        self._hexacopter.update()
+        self._hexacopter.roll, self._hexacopter.pitch, _ = self._regulator.update(
+            self._hexacopter.noisy_position, self._hexacopter.noisy_direction, self._target.position)
 
+        self._update_target()
         self.update()
 
 
@@ -58,8 +81,8 @@ class Map(QLabel):
 
         self._draw_background(painter, view_size)
 
-        self._hexacopter.draw(painter, view_size)
         self._target.draw(painter, view_size)
+        self._hexacopter.draw(painter, view_size)
 
     @staticmethod
     def _draw_background(painter, view_size):
@@ -73,16 +96,28 @@ class HexacopterView:
         self.hexacopter_model = hexacopter_model
 
     def draw(self, painter, view_size):
-        radius = 5
 
         position_in_view = self.hexacopter_model.position * view_size
+        direction_in_view = self.hexacopter_model.direction_vector * 0.01 * view_size
+        traveling_direction_in_view = self.hexacopter_model.traveling_vector * 0.05 * view_size
 
         painter.setPen(Qt.black)
         painter.setBrush(Qt.red)
 
-        painter.drawEllipse(position_in_view.x - radius,
-                            position_in_view.y - radius,
-                            2 * radius, 2 * radius)
+        main_radius = 5
+        painter.drawEllipse(position_in_view.x - main_radius,
+                            position_in_view.y - main_radius,
+                            2 * main_radius, 2 * main_radius)
+
+        main_radius = 3
+        painter.drawEllipse(position_in_view.x + direction_in_view.x - main_radius,
+                            position_in_view.y + direction_in_view.y - main_radius,
+                            2 * main_radius, 2 * main_radius)
+
+        main_radius = 2
+        painter.drawEllipse(position_in_view.x + traveling_direction_in_view.x - main_radius,
+                            position_in_view.y + traveling_direction_in_view.y - main_radius,
+                            2 * main_radius, 2 * main_radius)
 
 
 class Target:
