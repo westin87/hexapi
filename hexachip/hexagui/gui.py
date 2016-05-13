@@ -1,23 +1,21 @@
-import sys
 import logging
-from PyQt5.QtCore import pyqtSignal
-import pkg_resources
 
-from PyQt5.QtWidgets import QApplication, QMainWindow
+import pkg_resources
+import sys
 from PyQt5 import QtCore
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtWidgets import QApplication, QMainWindow
 
 from hexacommon.common.gps_data import GPSData
 from hexacommon.common.network_handler import NetworkHandler
-
 from hexagui.toolbars.gps_controll_toolbar import GpsControlToolbar
 from hexagui.toolbars.logging_toolbar import LoggingToolbar
 from hexagui.toolbars.mode_selection_toolbar import ModeSelectionToolbar
+from hexagui.toolbars.network_toolbar import NetworkToolbar
 from hexagui.toolbars.rc_toolbar import RemoteControlToolbar
 from hexagui.toolbars.regulator_toolbar import RegulatorToolbar
-from hexagui.toolbars.network_toolbar import NetworkToolbar
-
-from hexagui.widgets.map_label import MapLabel
 from hexagui.utils import recorders
+from hexagui.widgets.map_label import MapLabel
 
 
 class HexapiGUI(QMainWindow):
@@ -255,7 +253,7 @@ def _opposite_sign(x):
 
 
 def main():
-    logging.basicConfig(filename='hexapi_gui.log', level=logging.DEBUG)
+    logging.basicConfig(filename='hexachip.log', level=logging.DEBUG)
     app = QApplication([])
     win = HexapiGUI()
     win.show()

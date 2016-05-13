@@ -5,8 +5,8 @@ import time
 
 from hexacommon.common import network_handler
 from hexarpi.programs import remote_control
-from hexarpi.utils import movement
 from hexarpi.utils import gps_util
+from hexarpi.utils import movement
 
 
 class Hexacopter:

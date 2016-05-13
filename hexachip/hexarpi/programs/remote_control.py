@@ -1,16 +1,14 @@
 import logging
+import os
+import pickle
 
 import time
-import pickle
-import os
-import platform
-from hexacommon.common.coordinates import Point2D
 
+from hexacommon.common.coordinates import Point2D
+from hexacommon.constants import REGULATOR
 from hexarpi.programs.program import Program
 from hexarpi.utils import orientation
 from hexarpi.utils.regulator import HexacopterRegulator
-
-from hexacommon.constants import REGULATOR
 
 
 class RcProgram(Program):
