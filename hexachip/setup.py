@@ -7,11 +7,13 @@ setup(
     packages=find_packages(),
     entry_points={
         "console_scripts": [
-            "hexagui = hexagui.gui:main",
-            "hexarpi = hexarpi.rpi:main"]
+            "run-hexagui = hexagui.gui:main",
+            "run-hexarpi = hexarpi.rpi:main",
+            "test-prototype = hexarpi.tests.integration.test_regulator:main",
+            "test-orientation = hexarpi.utils.orientation:main",
+            "test-position = hexarpi.utils.position:main"]
     },
     package_data={
         'hexagui': ['resources/*'],
-    },
-    requires=['PyQt5']
+    }
 )

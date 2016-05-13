@@ -59,7 +59,7 @@ class HexacopterSimulator(QWidget):
     def _run(self):
         # Update regulator with data
         self._hexacopter.update()
-        self._hexacopter.roll, self._hexacopter.pitch, _ = self._regulator.update(
+        self._hexacopter.pitch, self._hexacopter.roll, _ = self._regulator.update(
             self._hexacopter.noisy_position, self._hexacopter.noisy_direction, self._target.position)
 
         self._update_target()
@@ -142,8 +142,12 @@ class TargetView:
                             2 * radius, 2 * radius)
 
 
-if __name__ == '__main__':
+def main():
     app = QApplication([])
     win = HexacopterSimulator()
     win.show()
     sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()

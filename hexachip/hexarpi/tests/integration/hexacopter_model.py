@@ -52,7 +52,7 @@ class HexacopterModel:
         # Add pitch and roll position deltas to the current position
         movement_delta = pitch_delta + roll_deta
 
-        self.traveling_vector = movement_delta / abs(movement_delta)
+        self.traveling_vector = movement_delta / (abs(movement_delta) + np.finfo(np.float32).eps)
 
         self.position = self.position + movement_delta
 

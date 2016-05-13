@@ -1,18 +1,8 @@
 import logging
 
 import math
-import platform
 import time
-
-# Check if on hexcopter or local, if local import stub for testing.
-rpi_hosts = ['hexapi', 'raspberrypi', 'chip']
-
-if platform.node() in rpi_hosts:
-    logging.info("MV: Running on hexacopter host")
-    import smbus
-else:
-    logging.info("MV: Running on localhost")
-    import hexarpi.tests.utils.stubs as smbus
+import smbus
 
 
 class Movement:

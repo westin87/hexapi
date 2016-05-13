@@ -2,7 +2,11 @@ import logging
 from time import sleep
 
 import numpy as np
+import signal
 from smbus import SMBus
+
+from hexacommon.common.coordinates import Vector2D
+
 
 class Orientation:
     # --- Constants from BNO055 datasheet ---
@@ -37,6 +41,13 @@ class Orientation:
             logging.info("OR: No BNO055 detected")
 
         self._configure()
+
+    @property
+    def direction(self):
+        direction_angle = self.get_euler_angel()[0]
+        direction = Vector2D(x=np.cos(direction_angle), y=np.sin(direction_angle))
+        direction /= abs(direction)
+        return direction
 
     def _write_byte(self, register, value):
         self._i2c_bus.write_byte_data(self.address, register, value)
@@ -90,6 +101,7 @@ def _combine_bytes(msb, lsb):
 
     return np.int16(value) / 900
 
+
 def radians_to_compass(radians):
     if radians < 1 * np.pi / 6:
         return 'S'
@@ -110,12 +122,27 @@ def radians_to_compass(radians):
     elif radians <= 12 * np.pi / 6:
         return 'S'
 
-def main():
-    o = Orientation()
-    for _ in range(1000):
-        sleep(0.1)
-        x, y, z = o.get_euler_angel()
-        print(radians_to_compass(x))
 
-if __name__=='__main__':
+class TestOrientation:
+    def __init__(self):
+        self._continue = True
+        self._orientation = Orientation()
+        signal.signal(signal.SIGINT, self._stop)
+
+    def start(self):
+        while self._continue:
+            sleep(0.1)
+            x, y, z = self._orientation.get_euler_angel()
+            print(radians_to_compass(x))
+
+    def _stop(self, *args):
+        self._continue = False
+
+
+def main():
+    test = TestOrientation()
+    test.start()
+
+
+if __name__ == '__main__':
     main()

@@ -90,7 +90,7 @@ class Hexacopter:
 
 
 def main():
-    logging.basicConfig(filename='hexapi_rpi.log', level=logging.DEBUG)
+    logging.basicConfig(filename='hexarpi.log', level=logging.DEBUG)
     hexacopter = Hexacopter()
     signal.signal(signal.SIGINT, hexacopter.stop)  # If ctrl + c abort nice.
 

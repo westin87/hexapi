@@ -47,13 +47,13 @@ class HexacopterRegulator:
         relative_direction_to_travel = self._calculate_relative_direction_to_go(
             self._direction_estimate, target_direction)
 
-        roll, pitch = self._direction_to_pitch_and_roll(
+        pitch, roll = self._direction_to_pitch_and_roll(
             relative_direction_to_travel)
 
         speed = self._speed_regulator.update(
             target_position, self._position_estimate)
 
-        return speed * roll, speed * pitch, 0
+        return speed * pitch, speed * roll, 0
 
     def _update_position(self, new_position):
 
@@ -94,10 +94,10 @@ class HexacopterRegulator:
         base_suggestion = (np.arctan2(target_direction.x, target_direction.y) -
                            np.arctan2(direction.x, direction.y))
 
-        return base_suggestion + np.pi / 2
+        return base_suggestion
 
     @staticmethod
     def _direction_to_pitch_and_roll(relative_direction_to_travel):
         pitch = np.cos(relative_direction_to_travel)
-        roll = np.sin(relative_direction_to_travel)
+        roll = -np.sin(relative_direction_to_travel)
         return pitch, roll

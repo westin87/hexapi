@@ -49,17 +49,14 @@ class RcProgram(Program):
                 self._log_sensor_data()
 
             if self._use_regulator:
-                current_position = self._position.position
+                pitch, roll, yaw = self._regulator.update(
+                    self._position.position, self._orientation.direction, self._target_position)
 
-                roll, pitch, yaw = self._regulator.update(
-                    current_position, self._target_position)
-
-                self._mov.set_roll(roll)
                 self._mov.set_pitch(pitch)
+                self._mov.set_roll(roll)
                 self._mov.set_yaw(yaw)
 
             time.sleep(0.1)
-        self._position.kill()
 
     def set_pitch(self, level):
         self._mov.set_pitch(int(level))
@@ -90,8 +87,7 @@ class RcProgram(Program):
         self._mov.set_altitude(-75)
 
     def start_regulator(self):
-        self._target_position = self._parse_gps_position(
-            self._position.get_gps_data())
+        self._target_position = self._position.position
 
         self._use_regulator = True
 
@@ -105,13 +101,11 @@ class RcProgram(Program):
     def set_target_position(self, latitude, longitude):
         self._target_position = Point2D(float(latitude), float(longitude))
 
-    def set_regulator_parameters(self, yaw_k, yaw_td, pitch_k, pitch_td):
-        self._regulator.yaw_k = float(yaw_k)
-        self._regulator.yaw_td = float(yaw_td)
-        self._regulator.pitch_k = float(pitch_k)
-        self._regulator.pitch_td = float(pitch_td)
+    def set_regulator_parameters(self, speed_k, speed_td):
+        self._regulator.speed_k = float(speed_k)
+        self._regulator.speed_td = float(speed_td)
 
-        self._regulator.create_new_pd_regulators()
+        self._regulator.update_pd_regulator()
 
     def start_logging(self, file_tag):
         self._log_sensor_data = True

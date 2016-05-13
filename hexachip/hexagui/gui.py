@@ -42,7 +42,7 @@ class HexapiGUI(QMainWindow):
 
         self._start_keyboard_timer()
 
-        self._nh = NetworkHandler()
+        self._nh = NetworkHandler(4092)
 
         self._register_network_callbacks()
         self._nh.start()
@@ -253,7 +253,7 @@ def _opposite_sign(x):
 
 
 def main():
-    logging.basicConfig(filename='hexachip.log', level=logging.DEBUG)
+    logging.basicConfig(filename='hexagui.log', level=logging.DEBUG)
     app = QApplication([])
     win = HexapiGUI()
     win.show()

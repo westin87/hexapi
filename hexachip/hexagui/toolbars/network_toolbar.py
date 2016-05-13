@@ -42,13 +42,14 @@ class NetworkToolbar(QToolBar):
         if len(host_and_port) == 2:
             port = int(host_and_port[1])
         else:
-            port = 4094
+            port = 4092
 
         self._nh.set_host(host_and_port[0], port)
 
     @QtCore.pyqtSlot()
     def _send_ping(self):
         if self._connected:
+            logging.debug("NT: Sending ping")
             self._nh.send_command("PING")
 
     @QtCore.pyqtSlot()

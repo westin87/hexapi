@@ -2,6 +2,7 @@ from time import sleep
 import logging
 
 import numpy as np
+import signal
 
 from hexacommon.common.coordinates import Point2D
 from smbus import SMBus
@@ -145,11 +146,27 @@ def _combine_altitude_bytes(msb, amsb, alsb, lsb):
     return value / (10**2)
 
 
-if __name__ == '__main__':
-    position = Position()
+class TestPosition:
+    def __init__(self):
+        self._continue = True
+        self._position = Position()
+        signal.signal(signal.SIGINT, self._stop)
 
-    for i in range(4*60):
-        sleep(1)
-        print("-" * 40)
-        print(position.status)
-        print(position)
+    def start(self):
+        while self._continue:
+            sleep(1)
+            print("-" * 40)
+            print(self._position.status)
+            print(self._position)
+
+    def _stop(self, *args):
+        self._continue = False
+
+
+def main():
+    test = TestPosition()
+    test.start()
+
+
+if __name__ == '__main__':
+    main()

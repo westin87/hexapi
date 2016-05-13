@@ -14,7 +14,7 @@ class NetworkHandler:
     any number of arguments. """
 
     def __init__(self, listen_port=4092):
-        logging.info("NH: Network handler created")
+        logging.info("NH: Network handler created, listening on port: {}".format(listen_port))
         self.thread = None
         self._listen_port = listen_port
         self._callback_container = dict()
@@ -33,7 +33,7 @@ class NetworkHandler:
     def stop(self):
         self.thread.stop()
 
-    def set_host(self, ip, port=4092):
+    def set_host(self, ip, port):
         self._client.ip = ip
         self._client.port = port
 
