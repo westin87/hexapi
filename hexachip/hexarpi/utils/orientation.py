@@ -1,19 +1,8 @@
 import logging
-
-import numpy as np
-import platform
 from time import sleep
 
-# Check if on hexacopter or local, if local import stub for testing.
-real_hosts = ['hexapi', 'raspberrypi', 'chip']
-
-if platform.node() in real_hosts:
-    logging.info("OR: Running on hexacopter host")
-    from smbus import SMBus
-else:
-    logging.info("OR: Running on localhost")
-    from hexarpi.tests.utils.stubs import SMBus
-
+import numpy as np
+from smbus import SMBus
 
 class Orientation:
     # --- Constants from BNO055 datasheet ---

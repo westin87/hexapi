@@ -1,29 +1,36 @@
 import logging
 import os
 import pickle
-
 import time
 
+from hexacommon.common.network_handler import NetworkHandler
 from hexacommon.common.coordinates import Point2D
 from hexacommon.constants import REGULATOR
 from hexarpi.programs.program import Program
-from hexarpi.utils import orientation
 from hexarpi.utils.regulator import HexacopterRegulator
+from hexarpi.utils.position import Position
+from hexarpi.utils.movement import Movement
+from hexarpi.utils.orientation import Orientation
 
 
 class RcProgram(Program):
-    def __init__(self, movement, network_handler, gps):
-        super(RcProgram, self).__init__(movement, network_handler)
+    def __init__(self, network_handler, movement, position, orientation):
+        """
+        :param NetworkHandler network_handler:
+        :param Movement movement:
+        :param Position position:
+        :param Orientation orientation:
+        """
+        super().__init__(network_handler, movement)
+
+        self._position = position
+        self._orientation = orientation
 
         self._use_regulator = False
-        self._gps = gps
-        self._orientation = orientation.Orientation()
-
         self._regulator = HexacopterRegulator()
         self._configure_regulator(self._regulator)
 
-        self._regulator.set_initial_position(
-            self._parse_gps_position(self._gps.get_gps_data()))
+        self._regulator.set_initial_position(self._position.position)
 
         self._log_file_path = ""
         self._log_data = dict()
@@ -36,14 +43,13 @@ class RcProgram(Program):
         logging.info("RC: Starting RC program")
         self._stop_program = False
         while not self._stop_program:
-            gps_data = self._gps.get_gps_data()
-            self._nh.send_command("GPS_DATA", gps_data)
+            self._nh.send_command("GPS_DATA", self._position.latitude, self._position.longitude)
 
             if self._log_sensor_data:
                 self._log_sensor_data()
 
             if self._use_regulator:
-                current_position = self._parse_gps_position(gps_data)
+                current_position = self._position.position
 
                 roll, pitch, yaw = self._regulator.update(
                     current_position, self._target_position)
@@ -53,7 +59,7 @@ class RcProgram(Program):
                 self._mov.set_yaw(yaw)
 
             time.sleep(0.1)
-        self._gps.kill()
+        self._position.kill()
 
     def set_pitch(self, level):
         self._mov.set_pitch(int(level))
@@ -85,7 +91,7 @@ class RcProgram(Program):
 
     def start_regulator(self):
         self._target_position = self._parse_gps_position(
-            self._gps.get_gps_data())
+            self._position.get_gps_data())
 
         self._use_regulator = True
 
@@ -134,28 +140,12 @@ class RcProgram(Program):
 
     def _log_sensor_data(self):
         self._log_data['gps'].append(
-            self._gps.get_gps_data())
-        self._log_data['mag'].append(
-            self._orientation.get_magnetic_field())
-        self._log_data['acc'].append(
-            self._orientation.get_acceleration())
-        self._log_data['ang'].append(
-            self._orientation.get_angular_rate())
+            self._position.position)
 
     @staticmethod
     def _configure_regulator(regulator):
-        regulator.yaw_k = REGULATOR.YAW_K
-        regulator.yaw_td = REGULATOR.YAW_TD
-        regulator.pitch_k = REGULATOR.PITCH_K
-        regulator.pitch_td = REGULATOR.PITCH_TD
-
-    @staticmethod
-    def _parse_gps_position(gps_data):
-        current_position = Point2D(
-            float(gps_data.data['latitude']),
-            float(gps_data.data['longitude']))
-
-        return current_position
+        regulator.speed_k = REGULATOR.SPEED_K
+        regulator.speed_td = REGULATOR.SPEED_TD
 
     def register_callbacks(self):
         self._nh.register_callback(self.set_pitch, "SET_PITCH")

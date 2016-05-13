@@ -1,34 +1,13 @@
 from time import sleep
-
 import logging
+
 import numpy as np
 
-import platform
-
-real_hosts = ['hexapi', 'raspberrypi', 'chip']
-
-if platform.node() in real_hosts:
-    logging.info("OR: Running on hexacopter host")
-    from smbus import SMBus
-else:
-    logging.info("OR: Running on localhost")
-    from hexarpi.tests.utils.stubs import SMBus
+from hexacommon.common.coordinates import Point2D
+from smbus import SMBus
 
 
-class GPSStatus:
-    def __init__(self, status_byte):
-        self.new_data = bool(status_byte & 0x1)
-        self.rcm_status = bool(status_byte & 0x2)
-        self.fix_3d = bool(status_byte & 0x4)
-        self.position_fix = bool(status_byte & 0x8)
-        self.used_satellites = np.uint32(status_byte >> 4)
-
-    def __str__(self):
-        return "Position fix: {}, number of satellites used: {}.".\
-            format(self.position_fix, self.used_satellites)
-
-
-class GPS:
+class Position:
     GTPA010_ADDRESS = 0x29
     GTPA010_ID = 0b10101100
     ID = 0x25
@@ -81,6 +60,10 @@ class GPS:
         return _combine_position_bytes(msb, amsb, alsb, lsb)
 
     @property
+    def position(self):
+        return Point2D(self.latitude, self.longitude)
+
+    @property
     def altitude(self):
         msb = self._read_byte(self.ALTITUDE_MSB)
         amsb = self._read_byte(self.ALTITUDE_AMSB)
@@ -107,6 +90,19 @@ class GPS:
 
     def _configure(self):
         pass
+
+
+class GPSStatus:
+    def __init__(self, status_byte):
+        self.new_data = bool(status_byte & 0x1)
+        self.rcm_status = bool(status_byte & 0x2)
+        self.fix_3d = bool(status_byte & 0x4)
+        self.position_fix = bool(status_byte & 0x8)
+        self.used_satellites = np.uint32(status_byte >> 4)
+
+    def __str__(self):
+        return "Position fix: {}, number of satellites used: {}.".\
+            format(self.position_fix, self.used_satellites)
 
 
 def _combine_position_bytes(msb, amsb, alsb, lsb):
@@ -150,10 +146,10 @@ def _combine_altitude_bytes(msb, amsb, alsb, lsb):
 
 
 if __name__ == '__main__':
-    gps = GPS()
+    position = Position()
 
     for i in range(4*60):
         sleep(1)
         print("-" * 40)
-        print(gps.status)
-        print(gps)
+        print(position.status)
+        print(position)

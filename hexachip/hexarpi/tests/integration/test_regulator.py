@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout
 
 from hexacommon.common.coordinates import Vector2D
 from hexarpi.tests.integration.hexacopter_model import HexacopterModel
-from hexarpi.utils.regulator_prototype import HexacopterRegulator
+from hexarpi.utils.regulator import HexacopterRegulator
 
 
 class HexacopterSimulator(QWidget):
