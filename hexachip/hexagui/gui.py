@@ -2,6 +2,8 @@ import logging
 
 import pkg_resources
 import sys
+
+import time
 from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QApplication, QMainWindow
@@ -24,6 +26,10 @@ class HexapiGUI(QMainWindow):
     def __init__(self):
         super(HexapiGUI, self).__init__()
         self.setWindowTitle("Hexacopter controller")
+
+
+        start_time = time.strftime("%y-%m-%d %H:%M:%S")
+        logging.info("==== Starting hexagui " + start_time + " ====")
 
         self._set_application_style()
 

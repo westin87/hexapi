@@ -49,7 +49,7 @@ class RcProgram(Program):
 
             if self._use_regulator:
                 pitch, roll, yaw = self._regulator.update(
-                    self._position.position, self._orientation.direction, self._target_position)
+                    self._position.position, self._orientation.direction_angle, self._target_position)
 
                 self._mov.set_pitch(pitch)
                 self._mov.set_roll(roll)

@@ -44,10 +44,13 @@ class Orientation:
 
     @property
     def direction(self):
-        direction_angle = self.get_euler_angel()[0]
-        direction = Vector2D(x=np.cos(direction_angle), y=np.sin(direction_angle))
+        direction = Vector2D(x=np.cos(self.direction_angle), y=np.sin(self.direction_angle))
         direction /= abs(direction)
         return direction
+
+    @property
+    def direction_angle(self):
+        return self.get_euler_angel()[0]
 
     def _write_byte(self, register, value):
         self._i2c_bus.write_byte_data(self.address, register, value)

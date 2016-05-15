@@ -49,7 +49,6 @@ class NetworkToolbar(QToolBar):
     @QtCore.pyqtSlot()
     def _send_ping(self):
         if self._connected:
-            logging.debug("NT: Sending ping")
             self._nh.send_command("PING")
 
     @QtCore.pyqtSlot()
