@@ -1,15 +1,20 @@
+from unittest.mock import MagicMock, patch
+
+from hexacommon.common import network_handler
+
+
 class TestNetworkHandler:
 
     def setup(self):
         self.port = 12325
         self.nh = network_handler.NetworkHandler(self.port)
 
-    @patch('hexarpi.network.network_handler.socket')
+    @patch('hexacommon.common.network_handler.socket')
     def test_callback(self, mock_socket_module):
         self.mock_socket = MagicMock()
         mock_socket_module.socket = MagicMock(return_value=self.mock_socket)
 
-        arguments = ["1337", "42"]
+        arguments = ["1337", "42", "123"]
         command = "CALLBACK"
         data = "; ".join([command] + arguments)
         encoded_data = data.encode(encoding='utf_8', errors='strict')
