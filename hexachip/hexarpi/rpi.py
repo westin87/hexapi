@@ -1,7 +1,16 @@
-import logging
+"""Usage: run-hexarpi [options]
 
+Options:
+-h, --help           Print this message.
+-l, --log-to-stdout  Send log to stdout.
+
+"""
+
+import logging
 import signal
 import time
+
+from docopt import docopt
 
 from hexacommon.common import network_handler
 from hexarpi.programs import remote_control
@@ -90,7 +99,13 @@ class Hexacopter:
 
 
 def main():
-    logging.basicConfig(filename='hexarpi.log', level=logging.DEBUG)
+    arguments = docopt(__doc__)
+
+    if arguments['--log-to-stdout']:
+        pass
+    else:
+        logging.basicConfig(filename='hexarpi.log', level=logging.DEBUG)
+
     hexacopter = Hexacopter()
     signal.signal(signal.SIGINT, hexacopter.stop)  # If ctrl + c abort nice.
 

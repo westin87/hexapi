@@ -1,10 +1,10 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 
 setup(
-    name="hexachip",
+    name="Hexachip",
     version="0.3",
-    packages=find_packages(),
+    packages=['hexacommon', 'hexagui', 'hexarpi'],
     entry_points={
         "console_scripts": [
             "run-hexagui = hexagui.gui:main",

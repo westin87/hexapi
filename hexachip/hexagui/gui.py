@@ -1,3 +1,10 @@
+"""Usage: run-hexagui [options]
+
+Options:
+-h, --help           Print this message.
+-l, --log-to-stdout  Send log to stdout.
+
+"""
 import logging
 
 import pkg_resources
@@ -7,6 +14,7 @@ import time
 from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QApplication, QMainWindow
+from docopt import docopt
 
 from hexacommon.common.gps_data import GPSData
 from hexacommon.common.network_handler import NetworkHandler
@@ -259,7 +267,13 @@ def _opposite_sign(x):
 
 
 def main():
-    logging.basicConfig(filename='hexagui.log', level=logging.DEBUG)
+    arguments = docopt(__doc__)
+
+    if arguments['--log-to-stdout']:
+        pass
+    else:
+        logging.basicConfig(filename='hexagui.log', level=logging.DEBUG)
+
     app = QApplication([])
     win = HexapiGUI()
     win.show()
