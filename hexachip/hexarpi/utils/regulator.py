@@ -41,13 +41,13 @@ class HexacopterRegulator:
         self._update_direction_estimate(direction)
         self._update_traveling_direction_estimate()
 
-        target_direction = self._calculate_target_direction(
+        target_direction = _calculate_target_direction(
             self._position_estimate, target_position)
 
-        relative_direction_to_travel = self._calculate_relative_direction_to_go(
+        relative_direction_to_travel = _calculate_relative_direction_to_go(
             self._direction_estimate, target_direction)
 
-        pitch, roll = self._direction_to_pitch_and_roll(
+        pitch, roll = _direction_to_pitch_and_roll(
             relative_direction_to_travel)
 
         speed = self._speed_regulator.update(
@@ -82,22 +82,22 @@ class HexacopterRegulator:
             self.traveling_direction_alpha * new_traveling_direction_estimate +
             (1 - self.direction_alpha) * self._traveling_direction_estimate)
 
-    @staticmethod
-    def _calculate_target_direction(position, target_position):
-        target_direction = target_position - position
-        target_direction /= abs(target_direction)
 
-        return target_direction
+def _direction_to_pitch_and_roll(relative_direction_to_travel):
+    pitch = np.cos(relative_direction_to_travel)
+    roll = -np.sin(relative_direction_to_travel)
+    return pitch, roll
 
-    @staticmethod
-    def _calculate_relative_direction_to_go(direction, target_direction):
-        base_suggestion = (np.arctan2(target_direction.x, target_direction.y) -
-                           np.arctan2(direction.x, direction.y))
 
-        return base_suggestion
+def _calculate_relative_direction_to_go(direction, target_direction):
+    base_suggestion = (np.arctan2(target_direction.x, target_direction.y) -
+                       np.arctan2(direction.x, direction.y))
 
-    @staticmethod
-    def _direction_to_pitch_and_roll(relative_direction_to_travel):
-        pitch = np.cos(relative_direction_to_travel)
-        roll = -np.sin(relative_direction_to_travel)
-        return pitch, roll
+    return base_suggestion
+
+
+def _calculate_target_direction(position, target_position):
+    target_direction = target_position - position
+    target_direction /= abs(target_direction)
+
+    return target_direction

@@ -33,9 +33,8 @@ class RcProgram(Program):
         self._regulator.set_initial_position(self._position.position)
 
         self._log_file_path = ""
-        self._log_data = dict()
-
         self._log_sensor_data = False
+        self._log_data = dict()
 
         self._target_position = Point2D(0, 0)
 
@@ -87,11 +86,13 @@ class RcProgram(Program):
         self._mov.set_altitude(-75)
 
     def start_regulator(self):
+        logging.info("RC: Starting regulator")
         self._target_position = self._position.position
 
         self._use_regulator = True
 
     def stop_regulator(self):
+        logging.info("RC: Stopping regulator")
         self._use_regulator = False
 
         time.sleep(0.5)
@@ -99,9 +100,15 @@ class RcProgram(Program):
         self._mov.set_yaw(0)
 
     def set_target_position(self, latitude, longitude):
+        logging.info("RC: Setting target position, lat: {}, long:".format(
+            latitude, longitude))
+
         self._target_position = Point2D(float(latitude), float(longitude))
 
     def set_regulator_parameters(self, speed_k, speed_td):
+        logging.info("RC: Setting regulator settings, K: {}, Td: {}".format(
+            speed_k, speed_td))
+
         self._regulator.speed_k = float(speed_k)
         self._regulator.speed_td = float(speed_td)
 
@@ -121,7 +128,7 @@ class RcProgram(Program):
         self._log_data['acc'] = []
         self._log_data['ang'] = []
 
-        logging.info("RC: Starting logging to {}".format(self._log_file_path))
+        logging.info("RC: Starting sensor logging to {}".format(self._log_file_path))
 
     def stop_logging(self):
         self._log_sensor_data = False
@@ -130,7 +137,7 @@ class RcProgram(Program):
         with open(self._log_file_path, 'w') as file_object:
             pickle.dump(self._log_data, file_object)
 
-        logging.info("RC: Done logging")
+        logging.info("RC: Sensor logging finished")
 
     def _log_sensor_data(self):
         self._log_data['gps'].append(
@@ -152,10 +159,8 @@ class RcProgram(Program):
         self._nh.register_callback(self.stop_logging, "STOP_LOGGING")
         self._nh.register_callback(self.start_regulator, "START_REGULATOR")
         self._nh.register_callback(self.stop_regulator, "STOP_REGULATOR")
-        self._nh.register_callback(
-            self.set_regulator_parameters, "SET_REG_PARAMS")
-        self._nh.register_callback(
-            self.set_target_position, "SET_TARGET_POSITION")
+        self._nh.register_callback(self.set_regulator_parameters, "SET_REG_PARAMS")
+        self._nh.register_callback(self.set_target_position, "SET_TARGET_POSITION")
 
 
 def _prepare_logging_path(filename):
