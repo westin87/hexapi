@@ -4,7 +4,7 @@ import logging
 import numpy as np
 import signal
 
-from hexacommon.common.coordinates import Point2D
+from hexachip.hexacommon.common.coordinates import Point2D
 from smbus import SMBus
 
 

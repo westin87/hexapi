@@ -1,8 +1,8 @@
 import numpy as np
 import sys
 
-from hexacommon.common.coordinates import Vector2D
-from hexarpi.utils.deriver import PDRegulator, Deriver
+from hexachip.hexacommon.common.coordinates import Vector2D
+from hexachip.hexacoppter.utils.deriver import PDRegulator, Deriver
 
 
 class HexacopterRegulator:

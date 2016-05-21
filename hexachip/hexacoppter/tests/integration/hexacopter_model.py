@@ -1,5 +1,5 @@
 import numpy as np
-from hexacommon.common.coordinates import Vector2D
+from hexachip.hexacommon.common.coordinates import Vector2D
 
 
 class HexacopterModel:

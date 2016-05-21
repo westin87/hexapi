@@ -12,10 +12,11 @@ import time
 
 from docopt import docopt
 
-from hexacommon.common import network_handler
-from hexarpi.programs import remote_control
-from hexarpi.utils import movement, orientation, position
-
+from hexachip.hexacommon.common.communication import Communication
+from hexachip.hexacoppter.programs import remote_control
+from hexachip.hexacoppter.utils.movement import Movement
+from hexachip.hexacoppter.utils.orientation import Orientation
+from hexachip.hexacoppter.utils.position import Position
 
 class Hexacopter:
     def __init__(self):
@@ -25,18 +26,19 @@ class Hexacopter:
         self._abort = False
         self._nice_abort = True
 
-        self._nh = network_handler.NetworkHandler(4094)
-        self._movement = movement.Movement(50)
-        self._position = position.Position()
-        self._orientation = orientation.Orientation()
+        self._comminication = Communication(4094)
+        self._movement = Movement(50)
+        self._position = Position()
+        self._orientation = Orientation()
 
-        self._rc_program = remote_control.RcProgram(self._nh, self._movement, self._position, self._orientation)
+        self._rc_program = remote_control.RcProgram(
+            self._comminication, self._movement, self._position, self._orientation)
 
         self._current_program = self._rc_program
 
-        self._register_callbacks()
+        self._connect_callbacks()
 
-        self._nh.start()
+        self._comminication.start()
 
     def run(self):
         start_time = time.strftime("%y-%m-%d %H:%M:%S")
@@ -49,7 +51,7 @@ class Hexacopter:
 
     def abort_flight(self):
         logging.info("MA: Abortign")
-        self._nh.stop()
+        self._comminication.stop()
         self._movement.set_yaw(0)
         self._movement.set_pitch(0)
         self._movement.set_roll(0)
@@ -88,14 +90,13 @@ class Hexacopter:
         self._nice_abort = False
         self.stop()
 
-    def _register_callbacks(self):
+    def _connect_callbacks(self):
         logging.info("MA: Registring callbacks")
         # Add all callbacks to the network handler.
-        self._nh.register_callback(self.set_program_rc, "START_PROG_RC")
+        self._comminication.connect_command_callback(self.set_program_rc, "START_PROG_RC")
         # self._nh.register_callback(self.set_program_gps, "START_PROG_GPS")
-        self._nh.register_callback(self.stop, "LAND")
-        self._nh.register_callback(self.kill, "KILL")
-        self._rc_program.register_callbacks()
+        self._comminication.connect_command_callback(self.stop, "LAND")
+        self._comminication.connect_command_callback(self.kill, "KILL")
 
 
 def main():
@@ -104,7 +105,7 @@ def main():
     if arguments['--log-to-stdout']:
         pass
     else:
-        logging.basicConfig(filename='hexarpi.log', level=logging.DEBUG)
+        logging.basicConfig(filename='hexacoppter.log', level=logging.DEBUG)
 
     hexacopter = Hexacopter()
     signal.signal(signal.SIGINT, hexacopter.stop)  # If ctrl + c abort nice.

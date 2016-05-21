@@ -6,32 +6,38 @@ import threading
 import time
 
 
-class NetworkHandler:
+class Communication:
     """ Manages the network connection with the client. Other
     software registers callback functions together with a network command.
     The callback functions are then invoked when a matching network
     command is received from the client. The callback function can take
     any number of arguments. """
 
-    def __init__(self, listen_port=4092):
+    def __init__(self, listen_port=4092, out_socket=None, in_socket=None):
         logging.info("NH: Network handler created, listening on port: {}".format(listen_port))
-        self.thread = None
+        self._receiver_thread = None
         self._listen_port = listen_port
         self._callback_container = dict()
         self._client = _Client()
-        self._network_socket = socket.socket(
-            socket.AF_INET, socket.SOCK_DGRAM)
+
+        if out_socket is None:
+            self._network_socket = socket.socket(
+                socket.AF_INET, socket.SOCK_DGRAM)
+        else:
+            self._network_socket = out_socket
+
+        self._receiver_thread = _ReceiverThread(
+            self._listen_port, self._client, self._callback_container,
+            in_socket=in_socket)
 
     def start(self):
         """ Starts the NetworkHandler, all callbacks needs to be registerd
         before this mathod is called. """
         logging.info("NH: Starting thread")
-        self.thread = NetworkHandlerThread(self._listen_port, self._client,
-                                           self._callback_container)
-        self.thread.start()
+        self._receiver_thread.start()
 
     def stop(self):
-        self.thread.stop()
+        self._receiver_thread.stop()
 
     def set_host(self, ip, port):
         self._client.ip = ip
@@ -44,20 +50,24 @@ class NetworkHandler:
             self._network_socket.sendto(
                 data.encode(), (self._client.ip, self._client.port))
 
-    def register_callback(self, function, command):
+    def connect_command_callback(self, function, command):
         """ Register callbacks, takes a function and a network command."""
         self._callback_container[command] = function
 
 
-class NetworkHandlerThread(threading.Thread):
+class _ReceiverThread(threading.Thread):
     """ Runs the network communication in a thread so that all other execution
     remains unaffected. """
 
-    def __init__(self, listen_port, client, callback_container):
+    def __init__(self, listen_port, client, callback_container, in_socket=None):
         logging.info("NH: Thread created")
         threading.Thread.__init__(self)
-        self._network_socket = socket.socket(
-            socket.AF_INET, socket.SOCK_DGRAM)
+
+        if in_socket is None:
+            self._network_socket = socket.socket(
+                socket.AF_INET, socket.SOCK_DGRAM)
+        else:
+            self._network_socket = in_socket
         self._network_socket.bind(('', listen_port))
         self._network_socket.settimeout(0.2)
 

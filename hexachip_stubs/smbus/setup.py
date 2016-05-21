@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(
-    name="hexachip_stubs",
+    name="smbus",
     version="0.1",
     packages=['smbus']
 )

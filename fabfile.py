@@ -47,7 +47,7 @@ def get_log_data():
 
 
 def start_hexapi():
-    run("nohup sudo hexarpi >> /home/pi/hexapi_logs/rpi.log")
+    run("nohup sudo hexacoppter >> /home/pi/hexapi_logs/rpi.log")
 
 
 def test():

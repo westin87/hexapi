@@ -3,25 +3,25 @@ import os
 import pickle
 import time
 
-from hexacommon.common.network_handler import NetworkHandler
-from hexacommon.common.coordinates import Point2D
-from hexacommon.constants import REGULATOR
-from hexarpi.programs.program import Program
-from hexarpi.utils.regulator import HexacopterRegulator
-from hexarpi.utils.position import Position
-from hexarpi.utils.movement import Movement
-from hexarpi.utils.orientation import Orientation
+from hexachip.hexacommon.common.communication import Communication
+from hexachip.hexacommon.common.coordinates import Point2D
+from hexachip.hexacommon.constants import REGULATOR
+from hexachip.hexacoppter.programs.baseprogram import BaseProgram
+from hexachip.hexacoppter.utils.regulator import HexacopterRegulator
+from hexachip.hexacoppter.utils.position import Position
+from hexachip.hexacoppter.utils.movement import Movement
+from hexachip.hexacoppter.utils.orientation import Orientation
 
 
-class RcProgram(Program):
-    def __init__(self, network_handler, movement, position, orientation):
+class RcProgram(BaseProgram):
+    def __init__(self, communication, movement, position, orientation):
         """
-        :param NetworkHandler network_handler:
+        :param Communication communication:
         :param Movement movement:
         :param Position position:
         :param Orientation orientation:
         """
-        super().__init__(network_handler, movement)
+        super().__init__(communication, movement)
 
         self._position = position
         self._orientation = orientation
@@ -38,11 +38,13 @@ class RcProgram(Program):
 
         self._target_position = Point2D(0, 0)
 
+        self._connect_callbacks()
+
     def run(self):
         logging.info("RC: Starting RC program")
         self._stop_program = False
         while not self._stop_program:
-            self._nh.send_command("GPS_DATA", self._position.latitude, self._position.longitude)
+            self._communication.send_command("GPS_DATA", self._position.latitude, self._position.longitude)
 
             if self._log_sensor_data:
                 self._log_sensor_data()
@@ -51,39 +53,39 @@ class RcProgram(Program):
                 pitch, roll, yaw = self._regulator.update(
                     self._position.position, self._orientation.direction_angle, self._target_position)
 
-                self._mov.set_pitch(pitch)
-                self._mov.set_roll(roll)
-                self._mov.set_yaw(yaw)
+                self._move.set_pitch(pitch)
+                self._move.set_roll(roll)
+                self._move.set_yaw(yaw)
 
             time.sleep(0.1)
 
     def set_pitch(self, level):
-        self._mov.set_pitch(int(level))
+        self._move.set_pitch(int(level))
 
     def set_roll(self, level):
-        self._mov.set_roll(int(level))
+        self._move.set_roll(int(level))
 
     def set_yaw(self, level):
-        self._mov.set_yaw(int(level))
+        self._move.set_yaw(int(level))
 
     def set_altitude(self, level):
-        self._mov.set_altitude(int(level))
+        self._move.set_altitude(int(level))
 
     def set_mode(self, mode):
         mode_trans = {"MAN": -50, "FS": -15, "ATTI": 20}
-        self._mov.set_mode(mode_trans[mode])
+        self._move.set_mode(mode_trans[mode])
 
     def start_motors(self):
         logging.info("Starting engines")
-        self._mov.set_pitch(-100)
-        self._mov.set_roll(-100)
-        self._mov.set_yaw(-100)
-        self._mov.set_altitude(-100)
+        self._move.set_pitch(-100)
+        self._move.set_roll(-100)
+        self._move.set_yaw(-100)
+        self._move.set_altitude(-100)
         time.sleep(1)
-        self._mov.set_pitch(0)
-        self._mov.set_roll(0)
-        self._mov.set_yaw(0)
-        self._mov.set_altitude(-75)
+        self._move.set_pitch(0)
+        self._move.set_roll(0)
+        self._move.set_yaw(0)
+        self._move.set_altitude(-75)
 
     def start_regulator(self):
         logging.info("RC: Starting regulator")
@@ -96,8 +98,8 @@ class RcProgram(Program):
         self._use_regulator = False
 
         time.sleep(0.5)
-        self._mov.set_pitch(0)
-        self._mov.set_yaw(0)
+        self._move.set_pitch(0)
+        self._move.set_yaw(0)
 
     def set_target_position(self, latitude, longitude):
         logging.info("RC: Setting target position, lat: {}, long:".format(
@@ -148,19 +150,19 @@ class RcProgram(Program):
         regulator.speed_k = REGULATOR.SPEED_K
         regulator.speed_td = REGULATOR.SPEED_TD
 
-    def register_callbacks(self):
-        self._nh.register_callback(self.set_pitch, "SET_PITCH")
-        self._nh.register_callback(self.set_roll, "SET_ROLL")
-        self._nh.register_callback(self.set_yaw, "SET_YAW")
-        self._nh.register_callback(self.set_altitude, "SET_ALTITUDE")
-        self._nh.register_callback(self.set_mode, "SET_MODE")
-        self._nh.register_callback(self.start_motors, "START_MOTORS")
-        self._nh.register_callback(self.start_logging, "START_LOGGING")
-        self._nh.register_callback(self.stop_logging, "STOP_LOGGING")
-        self._nh.register_callback(self.start_regulator, "START_REGULATOR")
-        self._nh.register_callback(self.stop_regulator, "STOP_REGULATOR")
-        self._nh.register_callback(self.set_regulator_parameters, "SET_REG_PARAMS")
-        self._nh.register_callback(self.set_target_position, "SET_TARGET_POSITION")
+    def _connect_callbacks(self):
+        self._communication.connect_command_callback(self.set_pitch, "SET_PITCH")
+        self._communication.connect_command_callback(self.set_roll, "SET_ROLL")
+        self._communication.connect_command_callback(self.set_yaw, "SET_YAW")
+        self._communication.connect_command_callback(self.set_altitude, "SET_ALTITUDE")
+        self._communication.connect_command_callback(self.set_mode, "SET_MODE")
+        self._communication.connect_command_callback(self.start_motors, "START_MOTORS")
+        self._communication.connect_command_callback(self.start_logging, "START_LOGGING")
+        self._communication.connect_command_callback(self.stop_logging, "STOP_LOGGING")
+        self._communication.connect_command_callback(self.start_regulator, "START_REGULATOR")
+        self._communication.connect_command_callback(self.stop_regulator, "STOP_REGULATOR")
+        self._communication.connect_command_callback(self.set_regulator_parameters, "SET_REG_PARAMS")
+        self._communication.connect_command_callback(self.set_target_position, "SET_TARGET_POSITION")
 
 
 def _prepare_logging_path(filename):

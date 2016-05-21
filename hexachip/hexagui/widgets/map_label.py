@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
 from PyQt5.QtCore import Qt
 
 from PyQt5.QtWidgets import QLabel, QPushButton
 from PyQt5 import QtGui, QtCore
-from hexagui.utils import gmaps
+from hexachip.hexagui.utils import gmaps
 
 
 class MapLabel(QLabel):

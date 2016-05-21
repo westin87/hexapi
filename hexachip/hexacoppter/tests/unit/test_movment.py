@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from hexarpi.utils import movement
+from hexachip.hexacoppter.utils import movement
 
 
 class TestSetMovements:

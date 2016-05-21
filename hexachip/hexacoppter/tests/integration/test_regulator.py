@@ -5,9 +5,9 @@ from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout
 
-from hexacommon.common.coordinates import Vector2D
-from hexarpi.tests.integration.hexacopter_model import HexacopterModel
-from hexarpi.utils.regulator import HexacopterRegulator
+from hexachip.hexacommon.common.coordinates import Vector2D
+from hexachip.hexacoppter.tests.integration.hexacopter_model import HexacopterModel
+from hexachip.hexacoppter.utils.regulator import HexacopterRegulator
 
 
 class HexacopterSimulator(QWidget):

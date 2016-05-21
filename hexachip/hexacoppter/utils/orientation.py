@@ -5,7 +5,7 @@ import numpy as np
 import signal
 from smbus import SMBus
 
-from hexacommon.common.coordinates import Vector2D
+from hexachip.hexacommon.common.coordinates import Vector2D
 
 
 class Orientation:

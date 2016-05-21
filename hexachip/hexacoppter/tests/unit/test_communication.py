@@ -1,15 +1,15 @@
 from unittest.mock import MagicMock, patch
 
-from hexacommon.common import network_handler
+from hexachip.hexacommon.common.communication import Communication
 
 
 class TestNetworkHandler:
 
     def setup(self):
         self.port = 12325
-        self.nh = network_handler.NetworkHandler(self.port)
+        self.nh = Communication(self.port)
 
-    @patch('hexacommon.common.network_handler.socket')
+    @patch('hexachip.hexacommon.common.network_handler.socket')
     def test_callback(self, mock_socket_module):
         self.mock_socket = MagicMock()
         mock_socket_module.socket = MagicMock(return_value=self.mock_socket)
@@ -24,7 +24,7 @@ class TestNetworkHandler:
             return_value=(encoded_data, sender))
 
         callback = MagicMock()
-        self.nh.register_callback(callback, "CALLBACK")
+        self.nh.connect_command_callback(callback, "CALLBACK")
         self.nh.start()
         self.nh.stop()
 
