@@ -1,6 +1,6 @@
 import logging
 
-from hexachip.hexacoppter.utils.pwm_driver import PWMDriver
+from hexacoppter.utils.pwm_driver import PWMDriver
 
 
 class Movement:

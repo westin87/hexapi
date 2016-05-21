@@ -12,11 +12,11 @@ import time
 
 from docopt import docopt
 
-from hexachip.hexacommon.common.communication import Communication
-from hexachip.hexacoppter.programs import remote_control
-from hexachip.hexacoppter.utils.movement import Movement
-from hexachip.hexacoppter.utils.orientation import Orientation
-from hexachip.hexacoppter.utils.position import Position
+from hexacommon.common.communication import Communication
+from hexacoppter.programs import remote_control
+from hexacoppter.utils.movement import Movement
+from hexacoppter.utils.orientation import Orientation
+from hexacoppter.utils.position import Position
 
 class Hexacopter:
     def __init__(self):

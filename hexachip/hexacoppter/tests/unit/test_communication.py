@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from hexachip.hexacommon.common.communication import Communication
+from hexacommon.common.communication import Communication
 
 
 class TestNetworkHandler:

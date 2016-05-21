@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(
-    name="Hexachip",
+    name="hexachip",
     version="0.3",
     packages=['hexacommon', 'hexagui', 'hexacoppter'],
     entry_points={

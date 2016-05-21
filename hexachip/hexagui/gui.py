@@ -16,16 +16,16 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from docopt import docopt
 
-from hexachip.hexacommon.common.gps_data import GPSData
-from hexachip.hexacommon.common.communication import Communication
-from hexachip.hexagui.toolbars.gps_controll_toolbar import GpsControlToolbar
-from hexachip.hexagui.toolbars.logging_toolbar import LoggingToolbar
-from hexachip.hexagui.toolbars.mode_selection_toolbar import ModeSelectionToolbar
-from hexachip.hexagui.toolbars.network_toolbar import NetworkToolbar
-from hexachip.hexagui.toolbars.rc_toolbar import RemoteControlToolbar
-from hexachip.hexagui.toolbars.regulator_toolbar import RegulatorToolbar
-from hexachip.hexagui.utils import recorders
-from hexachip.hexagui.widgets.map_label import MapLabel
+from hexacommon.common.gps_data import GPSData
+from hexacommon.common.communication import Communication
+from hexagui.toolbars.gps_controll_toolbar import GpsControlToolbar
+from hexagui.toolbars.logging_toolbar import LoggingToolbar
+from hexagui.toolbars.mode_selection_toolbar import ModeSelectionToolbar
+from hexagui.toolbars.network_toolbar import NetworkToolbar
+from hexagui.toolbars.rc_toolbar import RemoteControlToolbar
+from hexagui.toolbars.regulator_toolbar import RegulatorToolbar
+from hexagui.utils import recorders
+from hexagui.widgets.map_label import MapLabel
 
 
 class HexapiGUI(QMainWindow):

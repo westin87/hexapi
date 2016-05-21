@@ -3,14 +3,14 @@ import os
 import pickle
 import time
 
-from hexachip.hexacommon.common.communication import Communication
-from hexachip.hexacommon.common.coordinates import Point2D
-from hexachip.hexacommon.constants import REGULATOR
-from hexachip.hexacoppter.programs.baseprogram import BaseProgram
-from hexachip.hexacoppter.utils.regulator import HexacopterRegulator
-from hexachip.hexacoppter.utils.position import Position
-from hexachip.hexacoppter.utils.movement import Movement
-from hexachip.hexacoppter.utils.orientation import Orientation
+from hexacommon.common.communication import Communication
+from hexacommon.common.coordinates import Point2D
+from hexacommon.constants import REGULATOR
+from hexacoppter.programs.baseprogram import BaseProgram
+from hexacoppter.utils.regulator import HexacopterRegulator
+from hexacoppter.utils.position import Position
+from hexacoppter.utils.movement import Movement
+from hexacoppter.utils.orientation import Orientation
 
 
 class RcProgram(BaseProgram):

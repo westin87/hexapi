@@ -1,7 +1,7 @@
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QToolBar, QLabel, QLineEdit
 
-from hexachip.hexacommon.constants import REGULATOR
+from hexacommon.constants import REGULATOR
 
 
 class RegulatorToolbar(QToolBar):
