@@ -34,4 +34,4 @@ class PDRegulator:
         if self._absolute:
             u = abs(u)
 
-        return np.clip(u, 0, 0.4)
+        return np.clip(u, 0, 0.5)

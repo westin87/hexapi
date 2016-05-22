@@ -53,9 +53,16 @@ class RcProgram(BaseProgram):
                 pitch, roll, yaw = self._regulator.update(
                     self._position.position, self._orientation.direction_angle, self._target_position)
 
-                self._move.set_pitch(pitch)
-                self._move.set_roll(roll)
-                self._move.set_yaw(yaw)
+                pitch = int(100 * pitch)
+                roll = int(100 * roll)
+                yaw = int(100 * yaw)
+
+                logging.debug("RC: Setting pitch: {}, roll: {}, yaw: {}".format(
+                    pitch, roll, yaw))
+
+                self._move.set_pitch(100 * pitch)
+                self._move.set_roll(100 * roll)
+                self._move.set_yaw(100 * yaw)
 
             time.sleep(0.1)
 
