@@ -60,9 +60,9 @@ class RcProgram(BaseProgram):
                 logging.debug("RC: Setting pitch: {}, roll: {}, yaw: {}".format(
                     pitch, roll, yaw))
 
-                self._move.set_pitch(100 * pitch)
-                self._move.set_roll(100 * roll)
-                self._move.set_yaw(100 * yaw)
+                self._move.set_pitch(pitch)
+                self._move.set_roll(roll)
+                self._move.set_yaw(yaw)
 
             time.sleep(0.1)
 
@@ -118,10 +118,10 @@ class RcProgram(BaseProgram):
         logging.info("RC: Setting regulator settings, K: {}, Td: {}".format(
             speed_k, speed_td))
 
-        self._regulator.speed_k = float(speed_k)
-        self._regulator.speed_td = float(speed_td)
-
-        self._regulator.update_pd_regulator()
+        if speed_k and speed_td:
+            self._regulator.speed_k = float(speed_k)
+            self._regulator.speed_td = float(speed_td)
+            self._regulator.update_pd_regulator()
 
     def start_logging(self, file_tag):
         self._log_sensor_data = True
@@ -156,6 +156,7 @@ class RcProgram(BaseProgram):
     def _configure_regulator(regulator):
         regulator.speed_k = REGULATOR.SPEED_K
         regulator.speed_td = REGULATOR.SPEED_TD
+        regulator.update_pd_regulator()
 
     def _connect_callbacks(self):
         self._communication.connect_command_callback(self.set_pitch, "SET_PITCH")

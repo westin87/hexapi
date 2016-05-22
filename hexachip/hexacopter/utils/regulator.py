@@ -50,6 +50,9 @@ class HexacopterRegulator:
         pitch, roll = _direction_to_pitch_and_roll(
             relative_direction_to_travel)
 
+        if np.isnan(pitch) or np.isnan(roll):
+            pitch, roll = 0, 0
+
         speed = self._speed_regulator.update(
             target_position, self._position_estimate)
 
