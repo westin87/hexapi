@@ -13,12 +13,12 @@ class Communication:
     command is received from the client. The callback function can take
     any number of arguments. """
 
-    def __init__(self, listen_port=4092, out_socket=None, in_socket=None):
-        logging.info("NH: Network handler created, listening on port: {}".format(listen_port))
+    def __init__(self, in_port=4092, out_port=4094, out_socket=None, in_socket=None):
+        logging.info("NH: Network handler created, listening on port: {}".format(in_port))
         self._receiver_thread = None
-        self._listen_port = listen_port
+        self._listen_port = in_port
         self._callback_container = dict()
-        self._client = _Client()
+        self._client = _Client(port=out_port)
 
         if out_socket is None:
             self._network_socket = socket.socket(
@@ -43,9 +43,9 @@ class Communication:
         self._client.ip = ip
         self._client.port = port
 
-    def send_command(self, command, *args):
-        if self._client.ip:
-            data = _compose_command(command, args)
+    def send_command(self, command, *args, **kwargs):
+        if self._client.ip and self._client.port:
+            data = _compose_command(command, args, kwargs)
 
             self._network_socket.sendto(
                 data.encode(), (self._client.ip, self._client.port))
@@ -84,20 +84,24 @@ class _ReceiverThread(threading.Thread):
             except:
                 continue
 
-            self._client.client_ip = sender[0]
+            self._client.ip = sender[0]
 
             if data:
-                command, arguments = _parse_command(data)
+                command, args, kwargs = _parse_command(data)
 
                 if command == "PING":
                     self._ping_checker.ping()
 
                 elif command in self._callback_container:
                     logging.info(
-                        "NH: Received command: " + command + " with arguments: " +
-                        ", ".join(arguments))
+                        "NH: Received command: {} with arguments: {}, {}".format(
+                            command, args, kwargs))
 
-                    self._callback_container[command](*arguments)
+                    try:
+                        self._callback_container[command](*args, **kwargs)
+                    except AttributeError:
+                        logging.error("Invalid attributes for command: {}, received arguments: {}, {}".format(
+                            command, args, kwargs))
 
                 else:
                     logging.warning("NH: Received invalid command: " + command)
@@ -120,7 +124,10 @@ class _Client:
         if port is not None:
             self.port = port
         else:
-            self.port = 4093
+            self.port = 4000
+
+    def __str__(self):
+        return "Client: ip: {}, port: {}".format(self.ip, self.port)
 
 
 class _PingChecker(threading.Thread):
@@ -150,10 +157,17 @@ class _PingChecker(threading.Thread):
         self._stop_thread = True
 
 
-def _compose_command(command, args):
+def _compose_command(command, args=None, kwargs=None):
     data = command
+
     if args:
         data += "; " + "; ".join(map(str, args))
+
+    if kwargs:
+        data += "; "
+        for key, argument in kwargs.items:
+            data += "{}={}".format(key, argument)
+
     return data
 
 
@@ -162,5 +176,16 @@ def _parse_command(data):
     data_list = list(map(str.strip, data.split("; ")))
 
     command = data_list[0]
-    arguments = data_list[1:] if len(data_list) > 1 else []
-    return command, arguments
+    argument_list = data_list[1:] if len(data_list) > 1 else []
+
+    args = list()
+    kwargs = dict()
+
+    for argument in argument_list:
+        if '=' in argument:
+            key, value = argument.split('=')
+            kwargs[key] = value
+        else:
+            args.append(argument)
+
+    return command, args, kwargs

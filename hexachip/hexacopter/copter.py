@@ -10,35 +10,37 @@ import logging
 import signal
 import time
 
+import sys
 from docopt import docopt
 
 from hexacommon.common.communication import Communication
-from hexacoppter.programs import remote_control
-from hexacoppter.utils.movement import Movement
-from hexacoppter.utils.orientation import Orientation
-from hexacoppter.utils.position import Position
+from hexacopter.programs import remote_control
+from hexacopter.utils.movement import Movement
+from hexacopter.utils.orientation import Orientation
+from hexacopter.utils.position import Position
+
 
 class Hexacopter:
     def __init__(self):
         init_time = time.strftime("%y-%m-%d %H:%M:%S")
-        logging.info("==== Initiating hexapi " + init_time + " ====")
+        logging.info("==== Initiating hexacopter " + init_time + " ====")
 
         self._abort = False
         self._nice_abort = True
 
-        self._comminication = Communication(4094)
+        self._communication = Communication(in_port=4094, out_port=4092)
         self._movement = Movement(50)
         self._position = Position()
         self._orientation = Orientation()
 
         self._rc_program = remote_control.RcProgram(
-            self._comminication, self._movement, self._position, self._orientation)
+            self._communication, self._movement, self._position, self._orientation)
 
         self._current_program = self._rc_program
 
         self._connect_callbacks()
 
-        self._comminication.start()
+        self._communication.start()
 
     def run(self):
         start_time = time.strftime("%y-%m-%d %H:%M:%S")
@@ -51,7 +53,7 @@ class Hexacopter:
 
     def abort_flight(self):
         logging.info("MA: Abortign")
-        self._comminication.stop()
+        self._communication.stop()
         self._movement.set_yaw(0)
         self._movement.set_pitch(0)
         self._movement.set_roll(0)
@@ -93,19 +95,19 @@ class Hexacopter:
     def _connect_callbacks(self):
         logging.info("MA: Registring callbacks")
         # Add all callbacks to the network handler.
-        self._comminication.connect_command_callback(self.set_program_rc, "START_PROG_RC")
+        self._communication.connect_command_callback(self.set_program_rc, "START_PROG_RC")
         # self._nh.register_callback(self.set_program_gps, "START_PROG_GPS")
-        self._comminication.connect_command_callback(self.stop, "LAND")
-        self._comminication.connect_command_callback(self.kill, "KILL")
+        self._communication.connect_command_callback(self.stop, "LAND")
+        self._communication.connect_command_callback(self.kill, "KILL")
 
 
 def main():
     arguments = docopt(__doc__)
 
     if arguments['--log-to-stdout']:
-        pass
+        logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     else:
-        logging.basicConfig(filename='hexacoppter.log', level=logging.DEBUG)
+        logging.basicConfig(filename='hexacopter.log', level=logging.DEBUG)
 
     hexacopter = Hexacopter()
     signal.signal(signal.SIGINT, hexacopter.stop)  # If ctrl + c abort nice.

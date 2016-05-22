@@ -6,11 +6,11 @@ import time
 from hexacommon.common.communication import Communication
 from hexacommon.common.coordinates import Point2D
 from hexacommon.constants import REGULATOR
-from hexacoppter.programs.baseprogram import BaseProgram
-from hexacoppter.utils.regulator import HexacopterRegulator
-from hexacoppter.utils.position import Position
-from hexacoppter.utils.movement import Movement
-from hexacoppter.utils.orientation import Orientation
+from hexacopter.programs.baseprogram import BaseProgram
+from hexacopter.utils.regulator import HexacopterRegulator
+from hexacopter.utils.position import Position
+from hexacopter.utils.movement import Movement
+from hexacopter.utils.orientation import Orientation
 
 
 class RcProgram(BaseProgram):
@@ -102,7 +102,7 @@ class RcProgram(BaseProgram):
         self._move.set_yaw(0)
 
     def set_target_position(self, latitude, longitude):
-        logging.info("RC: Setting target position, lat: {}, long:".format(
+        logging.info("RC: Setting target position, lat: {}, long: {}".format(
             latitude, longitude))
 
         self._target_position = Point2D(float(latitude), float(longitude))

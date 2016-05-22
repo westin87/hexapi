@@ -16,6 +16,7 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from docopt import docopt
 
+from hexacommon.common.coordinates import Point2D
 from hexacommon.common.gps_data import GPSData
 from hexacommon.common.communication import Communication
 from hexagui.toolbars.gps_controll_toolbar import GpsControlToolbar
@@ -47,7 +48,7 @@ class HexapiGUI(QMainWindow):
         self._yaw = 0
         self._roll = 0
         self._copter_mode = "ATTI"
-        self._latest_hexapi_point = (58.376801, 15.647814)
+        self._latest_copter_position = (58.376801, 15.647814)
 
         self._auto_return = False
         self._pressed_keys = []
@@ -56,7 +57,7 @@ class HexapiGUI(QMainWindow):
 
         self._start_keyboard_timer()
 
-        self._communication = Communication(4092)
+        self._communication = Communication(in_port=4092, out_port=4094)
 
         self._connect_callbacks()
         self._communication.start()
@@ -75,7 +76,7 @@ class HexapiGUI(QMainWindow):
 
     # Initialization functions
     def _add_map(self):
-        self._map = MapLabel(parent=self, center=self._latest_hexapi_point)
+        self._map = MapLabel(parent=self, center=self._latest_copter_position)
         self.setCentralWidget(self._map)
         self._map.setFocus()
 
@@ -147,12 +148,13 @@ class HexapiGUI(QMainWindow):
             self._pitch, self._roll, self._yaw, self._altitude,
             self._copter_mode)
 
-    def _receive_gps_data(self, raw_gps_data):
-        gps_data = GPSData(data_str=raw_gps_data)
-        self._latest_hexapi_point = (gps_data.data['latitude'],
-                                     gps_data.data['longitude'])
+    def _receive_gps_data(self, latitude, longitude):
+        logging.info("GUI: Copter position, lat: {}, long: {}".format(
+            latitude, longitude))
+        location = Point2D(float(latitude), float(longitude))
+        self._latest_copter_position = (location.x, location.y)
 
-        self._map.add_point(self._latest_hexapi_point)
+        self._map.add_point(self._latest_copter_position)
 
     # Slots
     @QtCore.pyqtSlot()
@@ -270,7 +272,7 @@ def main():
     arguments = docopt(__doc__)
 
     if arguments['--log-to-stdout']:
-        pass
+        logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     else:
         logging.basicConfig(filename='hexagui.log', level=logging.DEBUG)
 

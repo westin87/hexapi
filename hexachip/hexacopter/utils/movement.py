@@ -1,6 +1,6 @@
 import logging
 
-from hexacoppter.utils.pwm_driver import PWMDriver
+from hexacopter.utils.pwm_driver import PWMDriver
 
 
 class Movement:

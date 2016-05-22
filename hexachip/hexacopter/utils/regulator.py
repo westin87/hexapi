@@ -2,7 +2,7 @@ import numpy as np
 import sys
 
 from hexacommon.common.coordinates import Vector2D
-from hexacoppter.utils.deriver import PDRegulator, Deriver
+from hexacopter.utils.deriver import PDRegulator, Deriver
 
 
 class HexacopterRegulator:
