@@ -40,18 +40,23 @@ class RcProgram(BaseProgram):
 
         self._connect_callbacks()
 
+        self._send_cunter = 0
+
     def run(self):
         logging.info("RC: Starting RC program")
         self._stop_program = False
         while not self._stop_program:
-            self._communication.send_command("GPS_DATA", self._position.latitude, self._position.longitude)
+            self._send_cunter += 1
+            if self._send_cunter % 5 == 0:
+                self._communication.send_command("GPS_DATA", self._position.latitude, self._position.longitude)
+                self._send_cunter = 0
 
             if self._log_sensor_data:
                 self._log_sensor_data()
 
             if self._use_regulator:
                 pitch, roll, yaw = self._regulator.update(
-                    self._position.position, self._orientation.direction_angle, self._target_position)
+                    self._position.position, self._orientation.direction, self._target_position)
 
                 pitch = int(100 * pitch)
                 roll = int(100 * roll)

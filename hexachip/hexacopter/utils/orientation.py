@@ -31,9 +31,11 @@ class Orientation:
     EUL_DATA_Z_LSB = 0x1E
     EUL_DATA_Z_MSB = 0x1F
 
-    def __init__(self):
+    def __init__(self, filtering_alpha=0.6):
         self._i2c_bus = SMBus(2)
         self.address = self.BNO055_ADDRESS
+        self.filtering_aplha = filtering_alpha
+        self._direction_estimate = Vector2D()
 
         if self._read_byte(0x00) == self.BNO055_WHO_AM_I:
             logging.info("OR: BNO055 detected successfully.")
@@ -43,10 +45,20 @@ class Orientation:
         self._configure()
 
     @property
-    def direction(self):
+    def direction_raw(self):
         direction = Vector2D(x=np.cos(self.direction_angle), y=np.sin(self.direction_angle))
         direction /= abs(direction)
         return direction
+
+    @property
+    def direction(self):
+        self._direction_estimate = (
+            self.direction_alpha * self.direction_raw +
+            (1 - self.direction_alpha) * self._direction_estimate)
+
+        self._direction_estimate /= abs(self._direction_estimate)
+
+        return self._direction_estimate
 
     @property
     def direction_angle(self):

@@ -78,12 +78,6 @@ class Hexacopter:
         self._current_program = self._rc_program
         old_program.stop()
 
-    # def set_program_gps(self):
-    #     logging.info("MA: Switching to gps mode")
-    #     old_program = self._current_program
-    #     self._current_program = self._gps_program
-    #     old_program.stop()
-
     def stop(self, *args):
         self._abort = True
         self._current_program.stop()
@@ -96,7 +90,6 @@ class Hexacopter:
         logging.info("MA: Registring callbacks")
         # Add all callbacks to the network handler.
         self._communication.connect_command_callback(self.set_program_rc, "START_PROG_RC")
-        # self._nh.register_callback(self.set_program_gps, "START_PROG_GPS")
         self._communication.connect_command_callback(self.stop, "LAND")
         self._communication.connect_command_callback(self.kill, "KILL")
 

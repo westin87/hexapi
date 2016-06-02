@@ -31,9 +31,11 @@ class Position:
     ALTITUDE_ALSB= 0x19
     ALTITUDE_LSB = 0x1A
 
-    def __init__(self):
+    def __init__(self, filtering_alpha=0.6):
         self._i2c_bus = SMBus(2)
         self.address = self.GTPA010_ADDRESS
+        self._filtering_alpha = filtering_alpha
+        self._position_estimate = Point2D()
 
         if self._read_byte(self.ID) == self.GTPA010_ID:
             logging.info("GPS: GTPA010 detected successfully.")
@@ -61,8 +63,15 @@ class Position:
         return _combine_position_bytes(msb, amsb, alsb, lsb)
 
     @property
-    def position(self):
+    def position_raw(self):
         return Point2D(self.latitude, self.longitude)
+
+    @property
+    def position(self):
+        self._position_estimate = (
+            self._filtering_alpha * self.position +
+            (1 - self._filtering_alpha) * self._position_estimate)
+        return self._position_estimate
 
     @property
     def altitude(self):

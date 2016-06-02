@@ -36,7 +36,6 @@ class HexapiGUI(QMainWindow):
         super(HexapiGUI, self).__init__()
         self.setWindowTitle("Hexacopter controller")
 
-
         start_time = time.strftime("%y-%m-%d %H:%M:%S")
         logging.info("==== Starting hexagui " + start_time + " ====")
 
@@ -175,6 +174,10 @@ class HexapiGUI(QMainWindow):
 
         self._update_control_values()
 
+    @QtCore.pyqtSlot()
+    def _center_map(self):
+        self._map.set_center(self._latest_copter_position)
+
     @QtCore.pyqtSlot(bool)
     def _set_auto_return(self, auto_return):
         self._auto_return = auto_return
@@ -249,6 +252,8 @@ class HexapiGUI(QMainWindow):
                 self._start_motors()
             if key == QtCore.Qt.Key_K:
                 self._kill()
+            if key == QtCore.Qt.Key_M:
+                self._center_map()
 
             self._update_control_values()
 
